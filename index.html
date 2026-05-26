@@ -4474,38 +4474,225 @@ document.addEventListener('DOMContentLoaded', async () => {
 // TASK EXPLAINER MODAL (May 2026)
 // Click any of the 3 small task circles → bottom-sheet with definition + tip.
 // ====================================================================
-const TASK_EXPLAINERS = {
-  fans: {
-    emoji: '🔁',
-    title: 'Fans Banao',
-    sections: [
-      { label: 'What is a fan?', text: 'A player who has played <strong>5+ games</strong> with you. They keep coming back.' },
-      { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
-      { label: 'Why it matters', text: 'Fans are repeat users. They make your income predictable + stable.' },
-      { label: 'Tip', text: 'Last 30 sec ka high pe khatam karo. "Kal phir game khelenge?" plant karo — woh wapas aayenge.' },
-    ],
+const TASK_EXPLAINERS_I18N = {
+  en: {
+    fans: {
+      emoji: '🔁',
+      title: 'Fans Banao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is a fan?', text: 'A player who has played 5+ games with you. They keep coming back.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+        { label: 'Why it matters', text: 'Fans are repeat users. They make your income predictable + stable.' },
+        { label: 'Tip', text: 'Last 30 sec ka high pe khatam karo. "Kal phir game khelenge?" plant karo — woh wapas aayenge.' },
+      ],
+    },
+    reach: {
+      emoji: '👥',
+      title: 'Reach Badao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is reach?', text: 'The number of unique players you have played with.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+        { label: 'Why it matters', text: 'More players = bigger pool to convert into fans. Variety se aapki style improve hoti hai.' },
+        { label: 'Tip', text: 'Naye player mile to open mind se khelo. Pehle game accha ho to aap unke favourite ban sakte ho.' },
+      ],
+    },
+    complete: {
+      emoji: '✅',
+      title: 'Pura Khelo',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What it is', text: 'Percentage of games you complete out of total games you start.' },
+        { label: 'How calculated', html: '<span class="task-modal-target-pill">Complete games ÷ Total games started × 100</span>' },
+        { label: 'Target', text: '50%+ completion' },
+        { label: 'Tip', text: 'Sirf un calls mein game start karo jab time hai pura khelne ka. Kam games — but pure khelo — tezi se rate badhayega.' },
+      ],
+    },
   },
-  reach: {
-    emoji: '👥',
-    title: 'Reach Badao',
-    sections: [
-      { label: 'What is reach?', text: 'The number of <strong>unique players</strong> you have played with.' },
-      { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
-      { label: 'Why it matters', text: 'More players = bigger pool to convert into fans. Variety se aapki style improve hoti hai.' },
-      { label: 'Tip', text: 'Naye player mile to open mind se khelo. Pehle game accha ho to aap unke favourite ban sakte ho.' },
-    ],
+  hi: {
+    fans: {
+      emoji: '🔁',
+      title: 'Fans Banao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is a fan?', text: 'A player who has played 5+ games with you. They keep coming back.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+        { label: 'Why it matters', text: 'Fans are repeat users. They make your income predictable + stable.' },
+        { label: 'Tip', text: 'Last 30 sec ka high pe khatam karo. "Kal phir game khelenge?" plant karo — woh wapas aayenge.' },
+      ],
+    },
+    reach: {
+      emoji: '👥',
+      title: 'Reach Badao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is reach?', text: 'The number of unique players you have played with.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+        { label: 'Why it matters', text: 'More players = bigger pool to convert into fans. Variety se aapki style improve hoti hai.' },
+        { label: 'Tip', text: 'Naye player mile to open mind se khelo. Pehle game accha ho to aap unke favourite ban sakte ho.' },
+      ],
+    },
+    complete: {
+      emoji: '✅',
+      title: 'Pura Khelo',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What it is', text: 'Percentage of games you complete out of total games you start.' },
+        { label: 'How calculated', html: '<span class="task-modal-target-pill">Complete games ÷ Total games started × 100</span>' },
+        { label: 'Target', text: '50%+ completion' },
+        { label: 'Tip', text: 'Sirf un calls mein game start karo jab time hai pura khelne ka. Kam games — but pure khelo — tezi se rate badhayega.' },
+      ],
+    },
   },
-  complete: {
-    emoji: '✅',
-    title: 'Pura Khelo',
-    sections: [
-      { label: 'What it is', text: 'Percentage of games you <strong>complete</strong> out of total games you start.' },
-      { label: 'How calculated', text: 'Complete games ÷ Total games started × 100' },
-      { label: 'Target', html: '<span class="task-modal-target-pill">50%+ completion</span>' },
-      { label: 'Tip', text: 'Sirf un calls mein game start karo jab time hai pura khelne ka. Kam games — but pure khelo — tezi se rate badhayega.' },
-    ],
+  te: {
+    fans: {
+      emoji: '🔁',
+      title: 'Fans పెంచుకోండి',
+      got_it: 'Got it',
+      sections: [
+        { label: 'Fan అంటే ఏమిటి?', text: 'మీతో 5+ games ఆడిన player. వాళ్లు మళ్లీ మళ్లీ మీ దగ్గరకు వస్తుంటారు.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+        { label: 'ఇది ఎందుకు important?', text: 'Fans అంటే repeat users. వాళ్ల వల్ల మీ income stable గా & predictable గా ఉంటుంది.' },
+        { label: 'Tip', text: 'Last 30 seconds ని high energy తో ముగించండి.\n“రేపు మళ్లీ game ఆడదామా?” అని అడగండి — వాళ్లు మళ్లీ వస్తారు.' },
+      ],
+    },
+    reach: {
+      emoji: '👥',
+      title: 'Reach పెంచుకోండి',
+      got_it: 'Got it',
+      sections: [
+        { label: 'Reach అంటే ఏమిటి?', text: 'మీరు games ఆడిన unique players సంఖ్య.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+        { label: 'ఇది ఎందుకు important?', text: 'ఎక్కువ players = ఎక్కువ fans అయ్యే chance.\nకొత్త వాళ్లతో ఆడితే మీ style కూడా improve అవుతుంది.' },
+        { label: 'Tip', text: 'కొత్త player తో open mind తో game ఆడండి.\nమొదటి game బాగా జరిగితే మీరు వాళ్ల favourite అవ్వచ్చు.' },
+      ],
+    },
+    complete: {
+      emoji: '✅',
+      title: 'Games పూర్తి చేయండి',
+      got_it: 'Got it',
+      sections: [
+        { label: 'ఇది ఏమిటి?', text: 'మీరు start చేసిన total games లో ఎంత percentage games complete చేశారో అదే.' },
+        { label: 'ఎలా calculate చేస్తారు?', html: '<span class="task-modal-target-pill">Complete games ÷ Total games started × 100</span>' },
+        { label: 'Target', text: '50%+ completion' },
+        { label: 'Tip', text: 'పూర్తిగా ఆడడానికి time ఉన్నప్పుడు మాత్రమే game start చేయండి.\nతక్కువ games అయినా పూర్తిగా ఆడండి — అప్పుడు మీ rate త్వరగా పెరుగుతుంది.' },
+      ],
+    },
+  },
+  ta: {
+    fans: {
+      emoji: '🔁',
+      title: 'Fans Banao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is a fan?', text: 'A player who has played 5+ games with you. They keep coming back.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+        { label: 'Why it matters', text: 'Fans are repeat users. They make your income predictable + stable.' },
+        { label: 'Tip', text: 'Last 30 sec ka high pe khatam karo. "Kal phir game khelenge?" plant karo — woh wapas aayenge.' },
+      ],
+    },
+    reach: {
+      emoji: '👥',
+      title: 'Reach Badao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is reach?', text: 'The number of unique players you have played with.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+        { label: 'Why it matters', text: 'More players = bigger pool to convert into fans. Variety se aapki style improve hoti hai.' },
+        { label: 'Tip', text: 'Naye player mile to open mind se khelo. Pehle game accha ho to aap unke favourite ban sakte ho.' },
+      ],
+    },
+    complete: {
+      emoji: '✅',
+      title: 'Pura Khelo',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What it is', text: 'Percentage of games you complete out of total games you start.' },
+        { label: 'How calculated', html: '<span class="task-modal-target-pill">Complete games ÷ Total games started × 100</span>' },
+        { label: 'Target', text: '50%+ completion' },
+        { label: 'Tip', text: 'Sirf un calls mein game start karo jab time hai pura khelne ka. Kam games — but pure khelo — tezi se rate badhayega.' },
+      ],
+    },
+  },
+  ml: {
+    fans: {
+      emoji: '🔁',
+      title: 'Fans നെ ഉണ്ടാക്കൂ',
+      got_it: 'Got it',
+      sections: [
+        { label: 'Fan എന്താണ്?', text: 'നിങ്ങളോടൊപ്പം 5+ games കളിച്ച player\nഅവർ വീണ്ടും വീണ്ടും നിങ്ങളിലേക്ക് വരും' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+        { label: 'എന്തുകൊണ്ട് important?', text: 'Fans = repeat users\nഅവർ വീണ്ടും വീണ്ടും നിങ്ങളിലേക്ക് വരും\nഅതിലൂടെ നിങ്ങളുടെ income കൂടുതൽ predictable & stable ആവും' },
+        { label: 'Tip', text: 'Last 30 sec positive ആയി അവസാനിപ്പിക്കൂ\n “നാളെ വീണ്ടും game കളിക്കാമോ?” പോലൊരു hint കൊടുക്കൂ — അവർ തിരികെ വരാൻ chance കൂടുതലാണ്' },
+      ],
+    },
+    reach: {
+      emoji: '👥',
+      title: 'Reach കൂട്ടൂ',
+      got_it: 'Got it',
+      sections: [
+        { label: 'Reach എന്താണ്?', text: 'നിങ്ങൾ games കളിച്ച unique playersന്റെ എണ്ണം' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+        { label: 'എന്തുകൊണ്ട് important?', text: 'കൂടുതൽ players = കൂടുതൽ fans ആക്കാനുള്ള chance' },
+        { label: 'Tip', text: 'പുതിയ playersനെ നന്നായി തന്നെ approach ചെയ്യൂ\n ആദ്യ game നല്ലതായാൽ അവർക്ക് നിങ്ങൾ favourite ആകാം' },
+      ],
+    },
+    complete: {
+      emoji: '✅',
+      title: 'Games full ആയി complete ചെയ്യൂ',
+      got_it: 'Got it',
+      sections: [
+        { label: 'ഇതെന്താണ്?', text: 'നിങ്ങൾ start ചെയ്യുന്ന total gamesൽ എത്ര ശതമാനം games complete ചെയ്യുന്നു എന്നത്' },
+        { label: 'എങ്ങനെ calculate ചെയ്യും', html: '<span class="task-modal-target-pill">Complete games ÷ Total games started × 100</span>' },
+        { label: 'Target', text: '50%+ completion' },
+        { label: 'Tip', text: 'മുഴുവൻ ആക്കാൻ സമയം ഉള്ള callsൽ മാത്രം game start ചെയ്യൂ\nകുറച്ച് games ആയാലും അവസാനം വരെ complete ചെയ്ത് കളിച്ചാൽ\nനിങ്ങളുടെ rating കൂടുതൽ വേഗത്തിൽ improve ചെയ്യും' },
+      ],
+    },
+  },
+  kn: {
+    fans: {
+      emoji: '🔁',
+      title: 'Fans Banao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is a fan?', text: 'A player who has played 5+ games with you. They keep coming back.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+        { label: 'Why it matters', text: 'Fans are repeat users. They make your income predictable + stable.' },
+        { label: 'Tip', text: 'Last 30 sec ka high pe khatam karo. "Kal phir game khelenge?" plant karo — woh wapas aayenge.' },
+      ],
+    },
+    reach: {
+      emoji: '👥',
+      title: 'Reach Badao',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What is reach?', text: 'The number of unique players you have played with.' },
+        { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+        { label: 'Why it matters', text: 'More players = bigger pool to convert into fans. Variety se aapki style improve hoti hai.' },
+        { label: 'Tip', text: 'Naye player mile to open mind se khelo. Pehle game accha ho to aap unke favourite ban sakte ho.' },
+      ],
+    },
+    complete: {
+      emoji: '✅',
+      title: 'Pura Khelo',
+      got_it: 'Got it',
+      sections: [
+        { label: 'What it is', text: 'Percentage of games you complete out of total games you start.' },
+        { label: 'How calculated', html: '<span class="task-modal-target-pill">Complete games ÷ Total games started × 100</span>' },
+        { label: 'Target', text: '50%+ completion' },
+        { label: 'Tip', text: 'Sirf un calls mein game start karo jab time hai pura khelne ka. Kam games — but pure khelo — tezi se rate badhayega.' },
+      ],
+    },
   },
 };
+
+// Convenience: returns the modal data for the current language, falling back to en.
+function getTaskExplainer_(taskKey) {
+  const lang = (typeof CURRENT_LANG === 'string') ? CURRENT_LANG : 'en';
+  return (TASK_EXPLAINERS_I18N[lang] && TASK_EXPLAINERS_I18N[lang][taskKey])
+      || TASK_EXPLAINERS_I18N.en[taskKey];
+}
 
 function initTaskModal() {
   const modal = document.getElementById('task-modal');
@@ -4515,7 +4702,7 @@ function initTaskModal() {
   const bodyEl  = document.getElementById('task-modal-body');
 
   function openModal(key) {
-    const data = TASK_EXPLAINERS[key];
+    const data = getTaskExplainer_(key);
     if (!data) return;
     emojiEl.textContent = data.emoji;
     titleEl.textContent = data.title;
@@ -4524,6 +4711,7 @@ function initTaskModal() {
         <div class="task-modal-section-label">${s.label}</div>
         <div class="task-modal-section-text">${s.html || s.text}</div>
       </div>`).join('');
+    const gotItBtn = modal.querySelector('.task-modal-close-btn'); if (gotItBtn) gotItBtn.textContent = data.got_it || 'Got it';
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
   }
