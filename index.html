@@ -2636,14 +2636,6 @@
   </div>
 </div>
 
-<!-- =============================================================== -->
-<!-- CONFIG: set this to your deployed Apps Script Web App /exec URL. -->
-<!-- It must be the public form (no /a/macros/DOMAIN/ in the path).   -->
-<!-- =============================================================== -->
-<script>
-  window.PRO_PLAYER_API_URL = "https://script.google.com/macros/s/AKfycbwukRGp_7-XBcKwHnkJGWN2LDnyi3-2yAyyL-_ydRYaX2WrGtSGx_D6HSpXHItuzfWGHg/exec";
-</script>
-
 <script>
 // ====================================================================
 // I18N — Dictionary + lang detection + DOM swapping
@@ -3337,15 +3329,12 @@ function applyLanguage(lang) {
   document.querySelectorAll('.lang-chip').forEach(c => {
     c.classList.toggle('active', c.dataset.lang === lang);
   });
-  // Re-render dynamic elements that include language strings
-  if (typeof LEADERBOARD_DATA !== 'undefined' && typeof CURRENT_USER_RANK !== 'undefined') {
-    if (typeof renderYourRankChip === 'function') renderYourRankChip();
-    if (typeof renderList === 'function') renderList(LEADERBOARD_DATA);
-    const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK);
-    // Preserve the currently-viewed host on the My Score screen (might be someone else)
-    const viewHost = (typeof CURRENT_VIEW_HOST !== 'undefined' && CURRENT_VIEW_HOST) || me;
-    if (viewHost && typeof showMyScore === 'function') showMyScore(viewHost);
-    if (me && typeof renderTierProgress === 'function') renderTierProgress(me);
+  // Re-render dynamic elements that include language strings.
+  // Source of truth is CURRENT_USER now (single-row fetch). Leaderboard refs kept for legacy code that may still exist.
+  const me = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || null;
+  if (me) {
+    if (typeof showMyScore === 'function') showMyScore(me);
+    if (typeof renderTierProgress === 'function') renderTierProgress(me);
   }
 }
 
@@ -3365,66 +3354,128 @@ function detectLanguageFromMobile(mobile) {
 }
 
 // ====================================================================
-// EMBEDDED LEADERBOARD DATA
+// STATE
 // ====================================================================
-let LEADERBOARD_DATA = [];           // populated at runtime from Apps Script /exec?leaderboard=1
-let CURRENT_USER_RANK = -1;          // set after the gate-submit /exec?mobile=… lookup
-let CURRENT_USER_HOST_ID = null;     // canonical self-id, returned by the mobile lookup
+// LEADERBOARD_DATA is kept as an empty array so legacy code paths that
+// reference it (e.g. renderYourRankChip) degrade gracefully — leaderboard
+// is no longer fetched; only the current user's own row.
+let LEADERBOARD_DATA = [];
+let CURRENT_USER_RANK = -1;          // never set (no leaderboard fetched); kept for legacy refs
+let CURRENT_USER = null;              // populated by fetchHostByMobile(); the only live data we hold
 
 // ====================================================================
-// API CLIENT — talks to the Apps Script web app
+// APPS SCRIPT CLIENT  (security-first: sheet stays private)
 // ====================================================================
-const API_BASE = (window.PRO_PLAYER_API_URL || '').replace(/\/$/, '');
-if (!API_BASE) {
-  console.error('[PPB] Set window.PRO_PLAYER_API_URL to your Apps Script /exec URL before loading this script.');
-}
+// The Apps Script Web App runs server-side under a Google identity that
+// has read access to the sheet. The sheet itself is "Restricted" — nobody
+// outside the script's identity can read raw mobile numbers, even with the
+// sheet URL. The script's /exec endpoint:
+//   - takes a mobile number as input,
+//   - returns ONLY that host's badge data (no leaderboard, no other rows),
+//   - does NOT echo the raw mobile back in the response.
+// So: no token in client code, no sheet credentials, no enumeration possible.
+const PPB_API_URL = 'https://script.google.com/macros/s/AKfycbzB28TylIbZiGWGuJZpWfkKC263sfgn_Hj_KxyE3LqWQEeiTLnezSFHPSsfsSICiXFpdA/exec';
 
-async function apiFetch(params) {
-  const qs = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
-  const r = await fetch(API_BASE + '/exec?' + qs, { method: 'GET' });
+async function fetchHostFresh(mobile) {
+  const url = PPB_API_URL + '?mobile=' + encodeURIComponent(mobile);
+  const r = await fetch(url, { method: 'GET', credentials: 'omit' });
   if (!r.ok) throw new Error('API HTTP ' + r.status);
   const data = await r.json();
   if (!data.ok) throw new Error(data.error || 'API error');
-  return data;
+  if (!data.found) return null;
+
+  // Map the Apps Script response into the netlify host schema expected by the
+  // existing render functions (showMyScore, renderTierProgress, computeTaskStatus).
+  const s = data.stats || {};
+  return {
+    name: String(data.name || '').trim() || 'Player',
+    host_id: String(data.host_id || ''),
+    games_total: Number(s.total_games_played) || 0,
+    games_done: Number(s.completed_games) || 0,
+    repeats: Number(s.repeat_users) || 0,
+    reach: Number(s.total_users) || 0,
+    completion_pct: Number(s.completion_rate_pct) || 0,
+  };
 }
 
-async function loadLeaderboard() {
-  try {
-    const data = await apiFetch({ leaderboard: 1 });
-    LEADERBOARD_DATA = data.hosts || [];
-    return LEADERBOARD_DATA;
-  } catch (e) {
-    console.error('[PPB] loadLeaderboard failed:', e);
-    LEADERBOARD_DATA = [];
-    return LEADERBOARD_DATA;
+// ====================================================================
+// INDEXEDDB CACHE  (stale-while-revalidate)
+// ====================================================================
+const IDB_NAME = 'ppb-cache';
+const IDB_STORE = 'kv';
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 min — sheet update cadence is daily, this is conservative
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function idbGet(key) {
+  return idbOpen().then(db => new Promise((resolve, reject) => {
+    const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  })).catch(() => null);
+}
+function idbSet(key, value) {
+  return idbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  })).catch(e => console.warn('[PPB] idbSet failed', e));
+}
+
+async function fetchHostByMobile(mobile) {
+  const normalized = String(mobile || '').replace(/\D/g, '');
+  if (normalized.length !== 10) return null;
+  const cacheKey = 'host:' + normalized;
+
+  const cached = await idbGet(cacheKey);
+  const now = Date.now();
+  if (cached && (now - cached.ts) < CACHE_TTL_MS) {
+    // Stale-while-revalidate: serve cached, refresh in background.
+    refreshHostInBackground(normalized, cached.data);
+    return cached.data;
   }
-}
-
-async function lookupSelfByMobile(mobile) {
   try {
-    const data = await apiFetch({ mobile: mobile });
-    if (!data.found) return null;
-    CURRENT_USER_HOST_ID = data.host_id;
-    // Match the host_id against the loaded leaderboard to find rank.
-    const me = LEADERBOARD_DATA.find(h => String(h.host_id) === String(data.host_id));
-    CURRENT_USER_RANK = me ? me.rank : -1;
-    return me || null;
+    const fresh = await fetchHostFresh(normalized);
+    if (fresh) await idbSet(cacheKey, { data: fresh, ts: now });
+    return fresh;
   } catch (e) {
-    console.error('[PPB] lookupSelfByMobile failed:', e);
+    console.error('[PPB] fetchHostFresh failed:', e);
+    // Network failed — fall back to stale cache if any.
+    if (cached) return cached.data;
     return null;
   }
 }
 
-function rerenderAll() {
+async function refreshHostInBackground(mobile, previous) {
   try {
-    const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK) || LEADERBOARD_DATA[0];
-    if (!me) return;
-    if (typeof showMyScore === 'function') showMyScore(me);
-    if (typeof renderTierProgress === 'function') renderTierProgress(me);
-    if (typeof renderList === 'function') renderList(LEADERBOARD_DATA);
-    if (typeof renderPodium === 'function') renderPodium();
-  } catch (e) { console.error('[PPB] rerenderAll error', e); }
+    const fresh = await fetchHostFresh(mobile);
+    if (!fresh) return;
+    await idbSet('host:' + mobile, { data: fresh, ts: Date.now() });
+    // Only re-render if something actually changed.
+    if (JSON.stringify(fresh) !== JSON.stringify(previous)) {
+      CURRENT_USER = fresh;
+      rerenderSelf();
+    }
+  } catch (e) { /* silent — UI already shows cached data */ }
 }
+
+function rerenderSelf() {
+  if (!CURRENT_USER) return;
+  try {
+    if (typeof showMyScore === 'function') showMyScore(CURRENT_USER);
+    if (typeof renderTierProgress === 'function') renderTierProgress(CURRENT_USER);
+  } catch (e) { console.error('[PPB] rerenderSelf error', e); }
+}
+
+// Back-compat shim: existing code calls rerenderAll(); now it just refreshes self.
+function rerenderAll() { rerenderSelf(); }
 
 // ====================================================================
 // HELPERS
@@ -4054,16 +4105,18 @@ function wireLangGate() {
       applyLanguage(lang);
       submitBtn.disabled = true;
       try {
-        if (LEADERBOARD_DATA.length === 0) await loadLeaderboard();
-        const me = await lookupSelfByMobile(v);
+        const me = await fetchHostByMobile(v);
         if (!me) {
           errorEl.textContent = 'Mobile number sheet mein nahi mila';
           submitBtn.disabled = false;
           return;
         }
-        rerenderAll();
+        CURRENT_USER = me;
+        rerenderSelf();
+        try { localStorage.setItem('ppb_last_mobile', v); } catch (e) {}
         hideLangGate();
       } catch (e) {
+        console.error('[PPB] gate submit error', e);
         errorEl.textContent = 'Network error — try again';
       } finally {
         submitBtn.disabled = false;
@@ -4099,14 +4152,18 @@ function initLangGate() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Fetch leaderboard from Apps Script API before initial render.
-  // If the user already has a saved mobile (via localStorage on a prior visit),
-  // we could lookup self here too — but to keep it simple, that happens in the gate handler.
-  await loadLeaderboard();
-  const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK) || LEADERBOARD_DATA[0];
-  if (me) {
-    showMyScore(me);
-    renderTierProgress(me);
+  // No leaderboard fetch on page load — only fetch the current user's own row
+  // (and only after they enter their mobile in the gate, or via a saved one).
+  // If we have a remembered mobile from a previous visit, hydrate from cache instantly.
+  let savedMobile = null;
+  try { savedMobile = localStorage.getItem('ppb_last_mobile'); } catch (e) {}
+  if (savedMobile && /^\d{10}$/.test(savedMobile)) {
+    const me = await fetchHostByMobile(savedMobile);
+    if (me) {
+      CURRENT_USER = me;
+      showMyScore(me);
+      renderTierProgress(me);
+    }
   }
   // Land on My Score (Leaderboard removed)
   switchScreen('score');
