@@ -448,6 +448,23 @@
     display: flex; align-items: center; gap: 4px;
   }
 
+  /* Hero headline — sits above the avatar in the My Score hero */
+  .hero-headline {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin: 24px 20px 12px;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #1a1a1a;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.3);
+    letter-spacing: -0.01em;
+  }
+  @media (max-width: 380px) {
+    .hero-headline { font-size: 18px; margin: 18px 16px 10px; }
+  }
+
   /* Main Card */
   .main-card {
     background: #1a1a1a;
@@ -2354,10 +2371,12 @@
             <span class="sparkle s2">⭐</span>
             <span class="sparkle s3">✨</span>
 
+            <div class="hero-headline" data-i18n="hero_headline">Get Pro Player Badge &amp; Unlock Exclusive Benefits</div>
+
             <div class="avatar-hero" id="score-avatar">
               <div class="ring"></div>
               <span id="score-avatar-emoji">👩</span>
-              <div class="badge-corner">⭐ PRO</div>
+              <div class="badge-corner" id="score-badge-corner" style="display:none;">⭐ PRO</div>
             </div>
           </div>
 
@@ -2648,6 +2667,7 @@ const I18N = {
   en: {
     // Demo controls / nav
     nav_leaderboard: 'Leaderboard', nav_score: 'My Score', nav_howto: 'How to Win',
+    hero_headline: 'Get Pro Player Badge & Unlock Exclusive Benefits',
     // Gate
     gate_title: 'Pro Player Badge',
     gate_sub: 'Enter your FRND app mobile number — leaderboard will open in your language.',
@@ -2760,6 +2780,7 @@ const I18N = {
   hi: {
     // Hinglish — keeps current voice
     nav_leaderboard: 'Leaderboard', nav_score: 'My Score', nav_howto: 'Kaise Jeeto',
+    hero_headline: 'Pro Player Badge paao · Exclusive benefits unlock karo',
     gate_title: 'Pro Player Badge',
     gate_sub: 'Apna FRND app mobile number daalo — leaderboard aapki language mein khulega.',
     gate_submit: 'Leaderboard kholo', gate_or: 'ya',
@@ -2868,6 +2889,7 @@ const I18N = {
   // Telugu (AI-drafted — needs native review)
   te: {
     nav_leaderboard: 'లీడర్‌బోర్డ్', nav_score: 'నా స్కోర్', nav_howto: 'ఎలా గెలవాలి',
+    hero_headline: 'ప్రో ప్లేయర్ బ్యాడ్జ్ గెలుచుకోండి · ఎక్స్‌క్లూసివ్ బెనిఫిట్స్ పొందండి',
     gate_title: 'ప్రో ప్లేయర్ బ్యాడ్జ్',
     gate_sub: 'మీ FRND యాప్ మొబైల్ నంబర్ ఎంటర్ చేయండి — లీడర్‌బోర్డ్ మీ భాషలో తెరుచుకుంటుంది.',
     gate_submit: 'లీడర్‌బోర్డ్ తెరువు', gate_or: 'లేదా',
@@ -2974,6 +2996,7 @@ const I18N = {
   // Tamil (AI-drafted — needs native review)
   ta: {
     nav_leaderboard: 'லீடர்போர்ட்', nav_score: 'என் ஸ்கோர்', nav_howto: 'எப்படி வெல்வது',
+    hero_headline: 'ப்ரோ பிளேயர் பேட்ஜை வெல்லுங்கள் · எக்ஸ்க்ளூசிவ் பெனிஃபிட்களை அன்லாக் செய்யுங்கள்',
     gate_title: 'ப்ரோ பிளேயர் பேட்ஜ்',
     gate_sub: 'உங்கள் FRND ஆப் மொபைல் எண்ணை உள்ளிடுங்கள் — லீடர்போர்ட் உங்கள் மொழியில் திறக்கும்.',
     gate_submit: 'லீடர்போர்ட் திற', gate_or: 'அல்லது',
@@ -3080,6 +3103,7 @@ const I18N = {
   // Malayalam (AI-drafted — needs native review)
   ml: {
     nav_leaderboard: 'ലീഡർബോർഡ്', nav_score: 'എന്റെ സ്കോർ', nav_howto: 'എങ്ങനെ ജയിക്കാം',
+    hero_headline: 'പ്രോ പ്ലെയർ ബാഡ്ജ് നേടൂ · എക്സ്ക്ലൂസീവ് ബെനിഫിറ്റുകൾ അൺലോക്ക് ചെയ്യൂ',
     gate_title: 'പ്രോ പ്ലെയർ ബാഡ്ജ്',
     gate_sub: 'നിങ്ങളുടെ FRND ആപ്പ് മൊബൈൽ നമ്പർ നൽകുക — ലീഡർബോർഡ് നിങ്ങളുടെ ഭാഷയിൽ തുറക്കും.',
     gate_submit: 'ലീഡർബോർഡ് തുറക്കുക', gate_or: 'അല്ലെങ്കിൽ',
@@ -3186,6 +3210,7 @@ const I18N = {
   // Kannada (AI-drafted — needs native review)
   kn: {
     nav_leaderboard: 'ಲೀಡರ್‌ಬೋರ್ಡ್', nav_score: 'ನನ್ನ ಸ್ಕೋರ್', nav_howto: 'ಹೇಗೆ ಗೆಲ್ಲುವುದು',
+    hero_headline: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್ ಗೆಲ್ಲಿ · ಎಕ್ಸ್‌ಕ್ಲೂಸಿವ್ ಬೆನಿಫಿಟ್‌ಗಳನ್ನು ಅನ್‌ಲಾಕ್ ಮಾಡಿ',
     gate_title: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್',
     gate_sub: 'ನಿಮ್ಮ FRND ಆಪ್ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ — ಲೀಡರ್‌ಬೋರ್ಡ್ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ತೆರೆಯುತ್ತದೆ.',
     gate_submit: 'ಲೀಡರ್‌ಬೋರ್ಡ್ ತೆರೆ', gate_or: 'ಅಥವಾ',
@@ -3564,8 +3589,8 @@ function maskMobile(m) {
 // DEMO: Pro = 50+ games, Aspiring = 10–49 (so demo data shows both tiers)
 // ====================================================================
 const TIER_THRESHOLDS = {
-  pro: 50,        // Pro Player threshold (demo: 50, production: 100)
-  aspiring: 10,   // Aspiring threshold (demo: 10, production: 25)
+  pro: 100,       // Pro Player threshold (production)
+  aspiring: 25,   // Aspiring threshold (production)
 };
 function getTier(host) {
   const g = host.games_done || 0;
@@ -3853,6 +3878,12 @@ function showMyScore(host) {
 
   // Tier badge in identity sub-line
   document.getElementById('score-tier-badge').innerHTML = tierChip(host, 'large');
+
+  // Avatar corner badge — only show for actual Pro Players (>= 100 games done).
+  const badgeCorner = document.getElementById('score-badge-corner');
+  if (badgeCorner) {
+    badgeCorner.style.display = (getTier(host) === 'pro') ? 'flex' : 'none';
+  }
 
   // Tier card — reframed (May 2026): focused on Make-100-Games → 1.0× rate unlock
   // No more Rookie/Aspiring/Pro labels; the only milestone that matters is 100 games.
