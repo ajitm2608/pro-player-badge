@@ -3362,6 +3362,7 @@ function detectLanguageFromMobile(mobile) {
 let LEADERBOARD_DATA = [];
 let CURRENT_USER_RANK = -1;          // never set (no leaderboard fetched); kept for legacy refs
 let CURRENT_USER = null;              // populated by fetchHostByMobile(); the only live data we hold
+let COHORT_STATS = {};                // populated by fetchCohortStats(); cohort_stats sheet tab
 
 // ====================================================================
 // APPS SCRIPT CLIENT  (security-first: sheet stays private)
@@ -3476,6 +3477,47 @@ function rerenderSelf() {
 
 // Back-compat shim: existing code calls rerenderAll(); now it just refreshes self.
 function rerenderAll() { rerenderSelf(); }
+
+// ====================================================================
+// COHORT STATS — fetched once per session, cached 30 min in IDB
+// ====================================================================
+async function fetchCohortStats() {
+  const cached = await idbGet('cohort');
+  const now = Date.now();
+  const COHORT_TTL = 30 * 60 * 1000;
+  if (cached && (now - cached.ts) < COHORT_TTL) {
+    COHORT_STATS = cached.data || {};
+    // Refresh in background for the next page load.
+    refreshCohortInBackground();
+    return COHORT_STATS;
+  }
+  try {
+    const r = await fetch(PPB_API_URL + '?cohort=1', { method: 'GET', credentials: 'omit' });
+    if (!r.ok) throw new Error('cohort HTTP ' + r.status);
+    const data = await r.json();
+    COHORT_STATS = (data && data.stats) || {};
+    await idbSet('cohort', { data: COHORT_STATS, ts: now });
+    return COHORT_STATS;
+  } catch (e) {
+    console.warn('[PPB] fetchCohortStats failed:', e);
+    if (cached) { COHORT_STATS = cached.data || {}; }
+    return COHORT_STATS;
+  }
+}
+
+async function refreshCohortInBackground() {
+  try {
+    const r = await fetch(PPB_API_URL + '?cohort=1', { method: 'GET', credentials: 'omit' });
+    if (!r.ok) return;
+    const data = await r.json();
+    const fresh = (data && data.stats) || {};
+    await idbSet('cohort', { data: fresh, ts: Date.now() });
+    if (JSON.stringify(fresh) !== JSON.stringify(COHORT_STATS)) {
+      COHORT_STATS = fresh;
+      rerenderSelf();
+    }
+  } catch (e) { /* silent */ }
+}
 
 // ====================================================================
 // HELPERS
@@ -3741,7 +3783,12 @@ let CURRENT_VIEW_HOST = null;
 
 function showMyScore(host) {
   CURRENT_VIEW_HOST = host;
-  const isSelf = (host.rank === CURRENT_USER_RANK);
+  // Single-row-fetch model: we only ever show the user their own profile.
+  // The host_id comparison is a belt-and-braces sanity check.
+  const isSelf = !!CURRENT_USER && (
+    host === CURRENT_USER ||
+    (CURRENT_USER.host_id && String(host.host_id) === String(CURRENT_USER.host_id))
+  );
 
   // Score label + Tier title: "your" if self, "{name}'s" if other
   const ownerLabel = document.querySelector('.score-label');
@@ -3778,12 +3825,17 @@ function showMyScore(host) {
   }
 
   document.getElementById('score-name').textContent = host.name || '—';
-  document.getElementById('score-mobile').textContent = maskMobile(host.mobile);
+  // Mobile is no longer returned by the API (privacy). Hide the element entirely.
+  const mobileEl = document.getElementById('score-mobile');
+  if (mobileEl) mobileEl.style.display = 'none';
 
-  // Cohort chip — how many hosts share this user's # of tasks done (replaces individual rank)
+  // Cohort chip — counts come from the cohort_stats sheet tab via /exec?cohort=1.
+  // COHORT_STATS is populated by fetchCohortStats() (cached in IDB). Falls back to 0
+  // before the fetch resolves; rerenderSelf() is called once data lands.
   const myTs = computeTaskStatus(host);
-  const sameCohortCount = LEADERBOARD_DATA.filter(h => computeTaskStatus(h).unlocked === myTs.unlocked).length;
-  const allThreeCount = LEADERBOARD_DATA.filter(h => computeTaskStatus(h).unlocked === 3).length;
+  const stats = (typeof COHORT_STATS === 'object' && COHORT_STATS) || {};
+  const sameCohortCount = Number(stats['tasks_done_' + myTs.unlocked]) || 0;
+  const allThreeCount = Number(stats['tasks_done_3']) || 0;
   const cohortChip = document.getElementById('cohort-chip');
   if (cohortChip) {
     let cohortBody;
@@ -4152,6 +4204,10 @@ function initLangGate() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Kick off cohort-stats fetch in parallel — it's a separate endpoint with its own cache.
+  // Don't await here: cohort can lag the first paint; rerenderSelf() will pick it up.
+  fetchCohortStats();
+
   // No leaderboard fetch on page load — only fetch the current user's own row
   // (and only after they enter their mobile in the gate, or via a saved one).
   // If we have a remembered mobile from a previous visit, hydrate from cache instantly.
