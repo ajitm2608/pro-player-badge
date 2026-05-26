@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pro Player Badge — FRND</title>
+<!-- Warm the TLS + DNS handshake to script.google.com / script.googleusercontent.com so the
+     first API call after page load isn't blocked on a 200-400ms cold connect. -->
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<link rel="dns-prefetch" href="https://script.google.com">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -3514,9 +3519,19 @@ function zeroStatsHost() {
   };
 }
 
+// Wrap fetch with an AbortController so requests can't hang the UI forever.
+// Apps Script web apps occasionally take 5-10s on a cold start; we cap at 12s.
+function fetchWithTimeout(url, ms) {
+  ms = ms || 12000;
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  return fetch(url, { method: 'GET', credentials: 'omit', signal: ctl.signal })
+    .finally(() => clearTimeout(timer));
+}
+
 async function fetchHostFresh(mobile) {
   const url = PPB_API_URL + '?mobile=' + encodeURIComponent(mobile);
-  const r = await fetch(url, { method: 'GET', credentials: 'omit' });
+  const r = await fetchWithTimeout(url);
   if (!r.ok) throw new Error('API HTTP ' + r.status);
   const data = await r.json();
   if (!data.ok) throw new Error(data.error || 'API error');
@@ -3630,7 +3645,7 @@ async function fetchCohortStats() {
     return COHORT_STATS;
   }
   try {
-    const r = await fetch(PPB_API_URL + '?cohort=1', { method: 'GET', credentials: 'omit' });
+    const r = await fetchWithTimeout(PPB_API_URL + '?cohort=1');
     if (!r.ok) throw new Error('cohort HTTP ' + r.status);
     const data = await r.json();
     COHORT_STATS = (data && data.stats) || {};
@@ -3645,7 +3660,7 @@ async function fetchCohortStats() {
 
 async function refreshCohortInBackground() {
   try {
-    const r = await fetch(PPB_API_URL + '?cohort=1', { method: 'GET', credentials: 'omit' });
+    const r = await fetchWithTimeout(PPB_API_URL + '?cohort=1');
     if (!r.ok) return;
     const data = await r.json();
     const fresh = (data && data.stats) || {};
@@ -4419,26 +4434,28 @@ function initLangGate() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  // Kick off cohort-stats fetch in parallel — it's a separate endpoint with its own cache.
-  // Don't await here: cohort can lag the first paint; rerenderSelf() will pick it up.
-  fetchCohortStats();
+document.addEventListener('DOMContentLoaded', () => {
+  // Paint the UI shell FIRST so the user never stares at a blank page while
+  // the API is cold-starting. The hero/trophy/headline are already in the DOM;
+  // we just need to make the score screen visible.
+  switchScreen('score');
 
-  // No leaderboard fetch on page load — only fetch the current user's own row
-  // (and only after they enter their mobile in the gate, or via a saved one).
-  // If we have a remembered mobile from a previous visit, hydrate from cache instantly.
+  // Now load data in the background. As each fetch lands, we render into the
+  // existing shell. Nothing here blocks the initial paint.
+  fetchCohortStats(); // fire-and-forget; rerenderSelf() picks it up
+
   let savedMobile = null;
   try { savedMobile = localStorage.getItem('ppb_last_mobile'); } catch (e) {}
   if (savedMobile && /^\d{10}$/.test(savedMobile)) {
-    const me = await fetchHostByMobile(savedMobile);
-    if (me) {
-      CURRENT_USER = me;
-      showMyScore(me);
-      renderTierProgress(me);
-    }
+    fetchHostByMobile(savedMobile)
+      .then(me => {
+        if (!me) return;
+        CURRENT_USER = me;
+        showMyScore(me);
+        renderTierProgress(me);
+      })
+      .catch(e => console.warn('[PPB] initial host fetch failed', e));
   }
-  // Land on My Score (Leaderboard removed)
-  switchScreen('score');
 
   // Timestamps still render the "last updated / next update" timestamps shown on My Score
   if (typeof renderTimestamps === 'function') {
