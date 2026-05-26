@@ -3896,25 +3896,55 @@ function showMyScore(host) {
   const mobileEl = document.getElementById('score-mobile');
   if (mobileEl) mobileEl.style.display = 'none';
 
-  // Cohort chip — counts come from the cohort_stats sheet tab via /exec?cohort=1.
-  // COHORT_STATS is populated by fetchCohortStats() (cached in IDB). Falls back to 0
-  // before the fetch resolves; rerenderSelf() is called once data lands.
+  // Cohort chip — tier-aware motivational copy (not raw cohort-size). Pulls from
+  // COHORT_STATS (the cohort_stats sheet tab via /exec?cohort=1).
+  //
+  // Behavioural framing per level:
+  //   L0 (0 tasks): show the prize → "1 task = 1.1× unlock". Cite MAX cohort as social proof.
+  //   L1 (1 task) : celebrate progress + clear next step. Quantify hosts you've passed.
+  //   L2 (2 tasks): "so close" framing + show how few people make it to MAX.
+  //   L3 (3 tasks): celebrate top-tier status; reinforce elite identity.
   const myTs = computeTaskStatus(host);
   const stats = (typeof COHORT_STATS === 'object' && COHORT_STATS) || {};
-  const sameCohortCount = Number(stats['tasks_done_' + myTs.unlocked]) || 0;
-  const allThreeCount = Number(stats['tasks_done_3']) || 0;
+  const c0 = Number(stats['tasks_done_0']) || 0;
+  const c1 = Number(stats['tasks_done_1']) || 0;
+  const c2 = Number(stats['tasks_done_2']) || 0;
+  const c3 = Number(stats['tasks_done_3']) || 0;
+  const totalCohort = c0 + c1 + c2 + c3;
+  // How many hosts the user is ahead of (those with strictly fewer tasks unlocked).
+  const aheadOf =
+    myTs.unlocked === 0 ? 0 :
+    myTs.unlocked === 1 ? c0 :
+    myTs.unlocked === 2 ? c0 + c1 :
+                          c0 + c1 + c2;
+
   const cohortChip = document.getElementById('cohort-chip');
   if (cohortChip) {
-    let cohortBody;
-    if (myTs.unlocked === 3) {
-      cohortBody = `<div><strong>${sameCohortCount}</strong> users have achieved MAX (all 3 tasks)</div>
-                    <div class="cohort-chip-sub">You're in the top tier 👑</div>`;
-    } else {
-      const taskWord = myTs.unlocked === 1 ? 'task' : 'tasks';
-      cohortBody = `<div><strong>${sameCohortCount}</strong> users have done ${myTs.unlocked} ${taskWord}, like you</div>
-                    <div class="cohort-chip-sub">${allThreeCount} users have unlocked MAX 1.5×</div>`;
+    let head, sub, emoji;
+    if (myTs.unlocked === 0) {
+      emoji = '🎯';
+      head = `Pehla task complete karo · <strong>1.1×</strong> rate unlock`;
+      sub  = `<strong>${c3}</strong> hosts already at MAX 1.5× — aap kab join karoge?`;
+    } else if (myTs.unlocked === 1) {
+      emoji = '🔥';
+      head = `1 task done · sirf <strong>2 aur</strong> = MAX <strong>1.5×</strong>`;
+      sub  = `Aap <strong>${aheadOf}</strong> hosts se aage ho · ${c3} already at MAX`;
+    } else if (myTs.unlocked === 2) {
+      emoji = '⚡';
+      head = `So close! Sirf <strong>1 task aur</strong> = MAX <strong>1.5×</strong>`;
+      sub  = `Aap <strong>${aheadOf}</strong> hosts se aage ho · ${c3} ne yeh achieve kiya`;
+    } else { // 3 tasks done
+      emoji = '👑';
+      const pctTop = totalCohort > 0 ? Math.max(1, Math.round((c3 / totalCohort) * 100)) : 5;
+      head = `MAX <strong>1.5×</strong> unlocked · top tier ✨`;
+      sub  = `Sirf top <strong>${pctTop}%</strong> hosts yahan pahunchte hain · stay sharp`;
     }
-    cohortChip.innerHTML = `<div class="cohort-chip-emoji">👥</div><div class="cohort-chip-body">${cohortBody}</div>`;
+    cohortChip.innerHTML =
+      `<div class="cohort-chip-emoji">${emoji}</div>` +
+      `<div class="cohort-chip-body">` +
+        `<div>${head}</div>` +
+        `<div class="cohort-chip-sub">${sub}</div>` +
+      `</div>`;
   }
   // redeem-rate card removed — rate now shown inside climb-tips comparison block
 
