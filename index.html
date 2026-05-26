@@ -4753,5 +4753,21 @@ function initTaskModal() {
 }
 </script>
 
+<!-- Service Worker registration — caches the HTML shell for instant repeat-visit paint.
+     Registered after window.load so it never delays the first render. -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(function (reg) {
+          if (window.console) console.log('[PPB] SW registered, scope:', reg.scope);
+        })
+        .catch(function (err) {
+          if (window.console) console.warn('[PPB] SW registration failed:', err);
+        });
+    });
+  }
+</script>
+
 </body>
 </html>
