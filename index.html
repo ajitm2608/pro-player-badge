@@ -1,0 +1,4216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Player Badge — FRND</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg-page: #050505;
+    --bg-phone: #111;
+    --bg-card: #1f1f1f;
+    --bg-card-2: #262626;
+    --bg-card-3: #2d2d2d;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-tertiary: #6b6b6b;
+    --gold: #f5b937;
+    --gold-soft: #fbbf24;
+    --purple: #8b5cf6;
+    --purple-bright: #a78bfa;
+    --purple-deep: #6d28d9;
+    --green: #22c55e;
+    --pink-bg: #fcd5d5;
+    --pink-text: #c8364c;
+    --mint-bg: #c8f0d8;
+    --mint-text: #1a7a3e;
+    --cream-bg: #fce7b6;
+    --cream-text: #b06a16;
+    --lavender-bg: #e0d4f0;
+    --lavender-text: #6b3fa0;
+    --hero-gradient: linear-gradient(180deg, #f5a8a8 0%, #f8c8a0 60%, #f5b88a 100%);
+    --hero-gradient-gold: linear-gradient(180deg, #f5c548 0%, #f5a83a 60%, #e8862a 100%);
+    --hero-gradient-blue: linear-gradient(180deg, #b8c8f5 0%, #d8c8e8 60%, #f5c8c8 100%);
+    --hero-gradient-pink: linear-gradient(180deg, #f5b5d0 0%, #e8a8d0 50%, #c89dd8 100%);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+    background: var(--bg-page);
+    color: var(--text-primary);
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px 12px;
+    gap: 20px;
+  }
+
+  /* Demo Controls (developer-only) */
+  .demo-controls {
+    display: flex;
+    gap: 8px;
+    background: #1a1a1a;
+    padding: 6px;
+    border-radius: 999px;
+    border: 1px solid #2a2a2a;
+  }
+  .demo-controls button {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .demo-controls button.active {
+    background: var(--purple);
+    color: white;
+  }
+  .lang-switcher {
+    background: rgba(245,185,55,0.12) !important;
+    color: var(--gold) !important;
+    border: 1px solid rgba(245,185,55,0.25) !important;
+    font-size: 12px !important;
+    padding: 8px 12px !important;
+    margin-left: 4px !important;
+    display: inline-flex !important;
+    align-items: center; gap: 6px;
+    font-weight: 700;
+  }
+  .lang-switcher:hover {
+    background: rgba(245,185,55,0.20) !important;
+    border-color: rgba(245,185,55,0.40) !important;
+  }
+  .lang-switcher .lang-sw-current {
+    background: var(--gold);
+    color: #3a1f0a;
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+  }
+
+  /* Language Gate Modal */
+  .lang-gate {
+    position: fixed; inset: 0;
+    background: rgba(5,5,10,0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.25s ease;
+  }
+  @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+  .lang-gate-card {
+    background: #161618;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 32px 24px 24px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+  }
+  .lang-gate-logo {
+    width: 64px; height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 24px rgba(245,185,55,0.4);
+  }
+  .lang-gate-trophy { font-size: 32px; }
+  .lang-gate-title {
+    font-size: 22px; font-weight: 800;
+    color: white;
+    margin-bottom: 6px;
+    letter-spacing: -0.4px;
+  }
+  .lang-gate-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .lang-gate-input-row {
+    display: flex; align-items: center;
+    background: var(--bg-card);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 4px 14px 4px 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .lang-gate-input-row:focus-within {
+    border-color: var(--purple-bright);
+  }
+  .lang-gate-prefix {
+    color: var(--text-secondary);
+    font-weight: 700;
+    margin-right: 10px;
+    font-size: 15px;
+  }
+  .lang-gate-input-row input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 16px;
+    padding: 12px 0;
+    outline: none;
+    font-family: inherit;
+    letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .lang-gate-input-row input::placeholder {
+    color: var(--text-tertiary);
+    letter-spacing: 0.5px;
+  }
+  .lang-gate-error {
+    font-size: 12px;
+    color: #f87171;
+    min-height: 16px;
+    margin-bottom: 10px;
+    text-align: left;
+    padding-left: 4px;
+  }
+  .lang-gate-cta {
+    width: 100%;
+    background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 18px;
+    transition: transform 0.15s;
+  }
+  .lang-gate-cta:active { transform: scale(0.98); }
+  .lang-gate-divider {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text-tertiary);
+    font-size: 11px;
+    margin: 4px 0 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .lang-gate-divider::before, .lang-gate-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+  }
+  .lang-gate-picker-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    text-align: left;
+    padding-left: 4px;
+  }
+  .lang-gate-chips {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .lang-chip {
+    background: var(--bg-card);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    color: white;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+    display: flex; flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    text-align: left;
+    min-height: 56px;
+  }
+  .lang-chip-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.2px;
+  }
+  .lang-chip-native {
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+  }
+  .lang-chip:hover {
+    background: var(--bg-card-2);
+    border-color: rgba(167,139,250,0.40);
+  }
+  .lang-chip.active {
+    background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(139,92,246,0.08));
+    border-color: var(--purple);
+  }
+  .lang-chip.active .lang-chip-name { color: var(--purple-bright); }
+  .lang-chip.active::after {
+    content: '✓';
+    margin-left: auto;
+    color: var(--purple-bright);
+    font-weight: 800;
+    position: absolute;
+    right: 12px; top: 10px;
+  }
+  .lang-chip { position: relative; }
+  .lang-gate-footer {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* Phone Frame */
+  .phone-frame {
+    width: 393px;
+    height: 852px;
+    background: var(--bg-phone);
+    border-radius: 56px;
+    padding: 8px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+    flex-shrink: 0;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Status Bar */
+  .status-bar {
+    height: 50px;
+    padding: 16px 28px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    z-index: 10;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .status-bar .right {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 13px;
+  }
+  .status-bar .battery {
+    width: 26px; height: 12px;
+    border: 1.5px solid white;
+    border-radius: 3px;
+    position: relative; display: flex;
+    align-items: center; padding: 1px;
+  }
+  .status-bar .battery::after {
+    content: ''; position: absolute;
+    right: -3px; top: 3px;
+    width: 2px; height: 4px;
+    background: white; border-radius: 0 1px 1px 0;
+  }
+  .status-bar .battery .level {
+    background: white; height: 100%;
+    width: 80%; border-radius: 1px;
+  }
+
+  /* Notch */
+  .notch {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 30px;
+    background: #000; border-radius: 20px;
+    z-index: 20;
+  }
+
+  /* Screen container holds all screens + bottom nav */
+  .screen-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Screen content */
+  .screen-content {
+    position: absolute;
+    inset: 0 0 88px 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .screen-content::-webkit-scrollbar { display: none; }
+  .screen-content { scrollbar-width: none; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Hero Section */
+  .hero {
+    position: relative;
+    height: 280px;
+    background: var(--hero-gradient);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 20px;
+    overflow: hidden;
+  }
+  .hero-gold { background: var(--hero-gradient-gold); }
+  .hero-blue { background: var(--hero-gradient-blue); }
+  .hero-pink { background: var(--hero-gradient-pink); }
+
+  .hero .sparkle {
+    position: absolute; font-size: 16px; opacity: 0.85;
+    animation: sparkle 2.5s ease-in-out infinite;
+  }
+  .hero .sparkle.s1 { top: 70px; left: 40px; animation-delay: 0s; }
+  .hero .sparkle.s2 { top: 110px; right: 50px; animation-delay: 0.5s; font-size: 12px; }
+  .hero .sparkle.s3 { top: 140px; left: 70px; animation-delay: 1s; font-size: 14px; }
+  .hero .sparkle.s4 { top: 90px; left: 50%; animation-delay: 1.5s; font-size: 10px; }
+  .hero .sparkle.s5 { top: 180px; right: 80px; animation-delay: 0.8s; font-size: 12px; }
+
+  @keyframes sparkle {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.85; }
+    50% { transform: scale(1.3) rotate(180deg); opacity: 1; }
+  }
+
+  /* Trophy */
+  .trophy-illustration { text-align: center; margin-top: 20px; }
+  .trophy-svg {
+    width: 140px; height: 160px;
+    filter: drop-shadow(0 10px 30px rgba(139,69,19,0.3));
+  }
+  .trophy-caption {
+    color: #4a2a1a; font-weight: 800;
+    font-size: 18px; margin-top: 4px;
+    letter-spacing: -0.3px;
+  }
+  .trophy-sub {
+    color: #6b3a1a; font-size: 12px;
+    font-weight: 600; opacity: 0.75;
+  }
+
+  /* Avatar Hero */
+  .avatar-hero {
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffd9b8, #f5a87d);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 72px;
+    position: relative; margin-top: 50px;
+  }
+  .avatar-hero .ring {
+    position: absolute; inset: -12px;
+    border-radius: 50%; border: 4px solid var(--gold);
+    box-shadow: 0 0 30px rgba(245,185,55,0.5);
+  }
+  .avatar-hero .badge-corner {
+    position: absolute; bottom: -8px; right: -8px;
+    background: var(--gold); color: #4a2a1a;
+    font-weight: 800; font-size: 11px;
+    padding: 6px 12px; border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  /* Main Card */
+  .main-card {
+    background: #1a1a1a;
+    margin-top: -30px;
+    border-radius: 32px 32px 0 0;
+    padding: 24px 20px 32px;
+    position: relative;
+    z-index: 2;
+    min-height: 400px;
+  }
+
+  /* Identity Card */
+  .identity-card {
+    background: var(--bg-card);
+    border-radius: 20px; padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 14px;
+  }
+  /* "Viewing other player's public profile" banner */
+  .viewing-other-banner {
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, rgba(167,139,250,0.15), rgba(139,92,246,0.08));
+    border: 1px solid rgba(167,139,250,0.30);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin: -6px 0 14px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .viewing-other-banner strong { color: white; font-weight: 700; }
+  .viewing-other-banner .vob-icon { font-size: 16px; flex-shrink: 0; }
+  .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ffc5a6, #f5a87d);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+  }
+  .identity-info { flex: 1; min-width: 0; }
+  .identity-name {
+    font-size: 20px; font-weight: 700;
+    letter-spacing: -0.3px; margin-bottom: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .identity-sub {
+    font-size: 13px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap; row-gap: 4px;
+  }
+  .pro-chip {
+    background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+    color: #3a1f0a;
+    font-size: 11px; font-weight: 800;
+    padding: 3px 8px; border-radius: 6px;
+    letter-spacing: 0.3px;
+    display: inline-flex; align-items: center; gap: 3px;
+    white-space: nowrap;
+  }
+  .pro-chip.aspiring {
+    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    color: #1e293b;
+  }
+  /* Large tier badge for identity / hero card */
+  .tier-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+    color: #3a1f0a;
+    font-size: 12px; font-weight: 800;
+    padding: 5px 12px; border-radius: 8px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .tier-badge.aspiring {
+    background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+    color: #1e293b;
+  }
+  .tier-badge .tier-icon { font-size: 14px; line-height: 1; }
+  /* Aspiring progress mini-bar (used inside chips/cards) */
+  .tier-progress {
+    height: 6px;
+    background: rgba(255,255,255,0.10);
+    border-radius: 999px; overflow: hidden;
+    margin-top: 6px;
+  }
+  .tier-progress-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, #cbd5e1, #f5b937);
+    transition: width 0.8s ease;
+  }
+  .tier-progress-label {
+    font-size: 10.5px; color: var(--text-secondary);
+    margin-top: 4px; display: flex; justify-content: space-between;
+  }
+  .tier-progress-label strong { color: white; font-weight: 700; }
+
+  /* Tier progress card (Kaise Jeeto, horizontal progress format) */
+  .tier-progress-card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 56px 24px 22px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .tier-progress-track {
+    position: relative;
+    height: 8px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    margin: 30px 0 64px;
+  }
+  .tier-progress-fill-bar {
+    position: absolute; top: 0; left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #94a3b8 0%, #cbd5e1 30%, #fbbf24 70%, #f5b937 100%);
+    border-radius: 999px;
+    width: 0%;
+    transition: width 1.2s ease;
+  }
+  .tier-milestone {
+    position: absolute; top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+  }
+  .milestone-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card-2);
+    border: 2px solid rgba(255,255,255,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
+  }
+  .milestone-dot.rookie { background: linear-gradient(135deg, #475569, #334155); }
+  .milestone-dot.aspiring {
+    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    border-color: #cbd5e1;
+    color: #1e293b;
+  }
+  .milestone-dot.pro {
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    border-color: var(--gold);
+    color: #3a1f0a;
+    box-shadow: 0 4px 16px rgba(245,185,55,0.4);
+  }
+  .tier-milestone.achieved .milestone-dot {
+    box-shadow: 0 0 0 4px rgba(245,185,55,0.18);
+  }
+  .milestone-label {
+    position: absolute; top: 44px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+  .milestone-target {
+    position: absolute; top: -22px;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--gold);
+    background: rgba(245,185,55,0.12);
+    padding: 2px 7px;
+    border-radius: 6px;
+  }
+  .you-marker {
+    position: absolute; top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column;
+    align-items: center;
+    z-index: 5;
+    transition: left 1.2s ease;
+  }
+  .you-marker-tip {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--purple-bright);
+    border: 3px solid #0f0f1a;
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.4);
+  }
+  .you-marker-text {
+    position: absolute; top: -36px;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    background: var(--purple);
+    padding: 4px 9px;
+    border-radius: 8px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(139,92,246,0.4);
+  }
+  .you-marker-text::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--purple);
+  }
+  .tier-progress-legend {
+    display: flex; flex-direction: column; gap: 10px;
+    margin-top: 6px;
+  }
+  .tier-progress-legend-row {
+    display: flex; align-items: center;
+    gap: 10px; flex-wrap: wrap;
+    font-size: 12px; color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .tier-progress-legend-row strong { color: white; }
+
+  /* Tier ladder (legacy, kept for fallback usage) */
+  .tier-ladder {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 18px 16px;
+    margin-bottom: 12px;
+  }
+  .tier-ladder-row {
+    display: flex; align-items: center;
+    gap: 12px; padding: 10px 0;
+  }
+  .tier-ladder-row:not(:last-child) {
+    border-bottom: 1px dashed rgba(255,255,255,0.08);
+  }
+  .tier-ladder-step {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .tier-ladder-step.aspiring {
+    background: linear-gradient(135deg, #cbd5e1, #94a3b8);
+    color: #1e293b;
+  }
+  .tier-ladder-step.pro {
+    background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+    color: #3a1f0a;
+    box-shadow: 0 4px 16px rgba(245,185,55,0.3);
+  }
+  .tier-ladder-body { flex: 1; min-width: 0; }
+  .tier-ladder-name { font-size: 14px; font-weight: 700; color: white; margin-bottom: 2px; }
+  .tier-ladder-req { font-size: 12px; color: var(--text-secondary); line-height: 1.35; }
+  .tier-ladder-req strong { color: white; }
+  .status-dot {
+    width: 10px; height: 10px;
+    background: var(--green); border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+  }
+
+  /* Section Header */
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin: 18px 0 12px;
+  }
+  .section-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .section-icon.purple { background: linear-gradient(135deg, var(--purple), var(--purple-bright)); }
+  .section-icon.pink { background: linear-gradient(135deg, #f472b6, #ec4899); }
+  .section-title { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+  .section-sub { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+
+  /* Score Hero Card */
+  .score-card {
+    background: var(--bg-card); border-radius: 24px;
+    padding: 24px; text-align: center; margin-bottom: 16px;
+    position: relative; overflow: hidden;
+  }
+  .score-card::before {
+    content: ''; position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(245,185,55,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .score-label {
+    font-size: 13px; color: var(--text-secondary);
+    font-weight: 600; letter-spacing: 0.3px;
+    text-transform: uppercase; margin-bottom: 8px; position: relative;
+  }
+  .score-value {
+    font-size: 64px; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -2px; margin-bottom: 4px; position: relative;
+  }
+  .score-unit { font-size: 14px; color: var(--text-secondary); font-weight: 600; position: relative; }
+  .score-rank-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(245,185,55,0.15); color: var(--gold);
+    padding: 6px 14px; border-radius: 999px;
+    font-weight: 600; font-size: 13px; margin-top: 12px; position: relative;
+  }
+  .score-rank-chip strong { color: #fff; font-weight: 800; }
+
+  /* Stats 2x2 grid */
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; margin-bottom: 16px;
+  }
+  .stat-card {
+    padding: 20px 16px; border-radius: 18px;
+    text-align: center; position: relative;
+  }
+  .stat-card { min-height: 92px; display: flex; flex-direction: column; justify-content: center; }
+  .stat-card .stat-num {
+    font-size: 30px; font-weight: 800; line-height: 1;
+    margin-bottom: 6px; letter-spacing: -1px;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .stat-label { font-size: 12px; font-weight: 600; color: #2a2a2a; line-height: 1.25; }
+  .stat-card.mint { background: var(--mint-bg); }
+  .stat-card.mint .stat-num { color: var(--mint-text); }
+  .stat-card.pink { background: var(--pink-bg); }
+  .stat-card.pink .stat-num { color: var(--pink-text); }
+  .stat-card.cream { background: var(--cream-bg); }
+  .stat-card.cream .stat-num { color: var(--cream-text); }
+  .stat-card.lavender { background: var(--lavender-bg); }
+  .stat-card.lavender .stat-num { color: var(--lavender-text); }
+
+  /* Info Cards */
+  .info-card {
+    background: var(--bg-card); border-radius: 18px;
+    padding: 18px; margin-bottom: 12px;
+  }
+  .info-card-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 15px; font-weight: 700; margin-bottom: 12px;
+  }
+  .info-card-icon { font-size: 18px; }
+  .info-list {
+    list-style: none; display: flex; flex-direction: column; gap: 10px;
+  }
+  .info-list li {
+    display: flex; gap: 10px; font-size: 14px;
+    color: #d4d4d4; line-height: 1.5;
+  }
+  .info-list li .check {
+    color: var(--gold); flex-shrink: 0; font-weight: 700;
+  }
+  .info-list li strong { color: white; font-weight: 700; }
+
+  /* Climb row */
+  .climb-row {
+    display: flex; align-items: center; padding: 10px 0; gap: 12px;
+  }
+  .climb-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .climb-points {
+    background: rgba(245,185,55,0.15); color: var(--gold);
+    font-weight: 700; font-size: 13px;
+    padding: 4px 10px; border-radius: 999px;
+    min-width: 60px; text-align: center;
+  }
+  .climb-text { font-size: 13px; color: #d4d4d4; flex: 1; line-height: 1.4; }
+
+  /* Reward Card */
+  .reward-card {
+    background: linear-gradient(135deg, #2a1f0a, #3a2a18);
+    border-radius: 20px; padding: 22px; margin-bottom: 12px;
+    border: 1px solid rgba(245,185,55,0.2);
+    position: relative; overflow: hidden;
+  }
+  .reward-card::after {
+    content: ''; position: absolute;
+    top: -50px; right: -50px; width: 150px; height: 150px;
+    background: radial-gradient(circle, rgba(245,185,55,0.2), transparent 70%);
+  }
+  .reward-shield { text-align: center; margin-bottom: 14px; position: relative; }
+  .reward-badge-img {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold), #c8860a);
+    color: #3a1f0a; font-weight: 900;
+    padding: 12px 24px; border-radius: 14px;
+    font-size: 16px; letter-spacing: 1px;
+    box-shadow: 0 8px 24px rgba(245,185,55,0.3);
+    margin-bottom: 8px;
+  }
+  .reward-title {
+    font-size: 14px; font-weight: 700; color: var(--gold);
+    text-align: center; margin-bottom: 12px;
+  }
+  .reward-list {
+    list-style: none; display: flex; flex-direction: column;
+    gap: 8px; position: relative;
+  }
+  .reward-list li {
+    display: flex; gap: 10px;
+    font-size: 13px; color: #e8d8b8; line-height: 1.5;
+  }
+  .reward-list li .check { color: var(--gold); flex-shrink: 0; }
+  .reward-list li strong { color: #fff; }
+
+  /* Redeem Card */
+  .redeem-card {
+    background: linear-gradient(135deg, #1a2a3a, #1a3a3a);
+    border-radius: 18px; padding: 18px; margin-bottom: 14px;
+    border: 1px solid rgba(34,197,94,0.15);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .redeem-icon { font-size: 28px; flex-shrink: 0; }
+  .redeem-info { flex: 1; }
+  .redeem-rate { font-size: 22px; font-weight: 800; color: var(--green); line-height: 1; margin-bottom: 4px; }
+  .redeem-text { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+
+  /* Podium */
+  .podium {
+    display: grid; grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 8px; align-items: end; margin-bottom: 18px;
+  }
+  .podium-card {
+    border-radius: 20px; padding: 14px 8px;
+    text-align: center; position: relative; cursor: pointer;
+  }
+  .podium-card.first { background: var(--cream-bg); padding-top: 20px; padding-bottom: 20px; }
+  .podium-card.second { background: var(--lavender-bg); }
+  .podium-card.third { background: var(--pink-bg); }
+  .podium-medal { font-size: 26px; line-height: 1; margin-bottom: 4px; }
+  .podium-card.first .podium-medal { font-size: 34px; }
+  .podium-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    margin: 0 auto 6px; display: flex;
+    align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 18px;
+  }
+  .podium-card.first .podium-avatar { width: 52px; height: 52px; font-size: 22px; }
+  .podium-name {
+    font-size: 12px; font-weight: 700; color: #2a2a2a;
+    margin-bottom: 4px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%;
+    padding: 0 4px;
+  }
+  .podium-card.first .podium-name { font-size: 14px; }
+  .podium-score { font-size: 16px; font-weight: 800; color: #2a2a2a; line-height: 1; }
+  .podium-card.first .podium-score { font-size: 22px; color: var(--cream-text); }
+  .podium-card.second .podium-score { color: var(--lavender-text); }
+  .podium-card.third .podium-score { color: var(--pink-text); }
+  .podium-rate {
+    font-size: 10px; font-weight: 700; color: #4a4a4a; margin-top: 4px;
+    background: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 5px;
+    display: inline-block;
+  }
+
+  /* Ranked List */
+  .ranked-list {
+    background: var(--bg-card); border-radius: 20px;
+    overflow: hidden; margin-bottom: 16px;
+  }
+  .ranked-row {
+    display: flex; align-items: center;
+    padding: 12px 14px; gap: 11px;
+    transition: background 0.2s; cursor: pointer;
+  }
+  .ranked-row:not(:last-child) { border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .ranked-row:active { background: var(--bg-card-2); }
+  .ranked-row.you {
+    background: rgba(139,92,246,0.12);
+    border-left: 3px solid var(--purple-bright);
+  }
+  .rank-num {
+    font-size: 14px; font-weight: 800;
+    color: var(--text-secondary);
+    width: 24px; text-align: center; flex-shrink: 0;
+  }
+  .ranked-row.top3 .rank-num { color: var(--gold); font-size: 16px; }
+  .ranked-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 15px; flex-shrink: 0;
+  }
+  .ranked-info { flex: 1; min-width: 0; }
+  .ranked-name {
+    font-size: 14px; font-weight: 600; margin-bottom: 2px;
+    display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ranked-meta {
+    font-size: 11px; color: var(--text-tertiary);
+    line-height: 1.35;
+    display: flex; flex-wrap: wrap;
+    gap: 4px 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .ranked-meta span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .ranked-meta strong { color: #d4d4d4; font-weight: 700; }
+  .ranked-score { text-align: right; flex-shrink: 0; }
+  .ranked-score-num { font-size: 17px; font-weight: 800; color: var(--gold); line-height: 1; }
+  .ranked-score-rate { font-size: 11px; color: var(--text-tertiary); font-weight: 600; margin-top: 2px; }
+
+  /* Search Bar */
+  .search-bar {
+    background: var(--bg-card); border-radius: 14px;
+    padding: 12px 16px; display: flex;
+    align-items: center; gap: 10px; margin-bottom: 16px;
+  }
+  .search-bar input {
+    flex: 1; background: transparent; border: none;
+    color: white; font-size: 14px; font-family: inherit; outline: none;
+  }
+  .search-bar input::placeholder { color: var(--text-tertiary); }
+  .search-icon { color: var(--text-tertiary); font-size: 16px; }
+
+  /* Leaderboard count chip */
+  .count-chip {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--text-secondary);
+    margin: 4px 0 14px 4px;
+  }
+  .count-chip strong { color: var(--gold); font-weight: 700; }
+
+  /* Your rank chip (mid-rank user simulation) */
+  .your-rank-chip {
+    background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(167,139,250,0.10));
+    border: 1px solid rgba(167,139,250,0.30);
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .your-rank-chip:active { transform: scale(0.98); }
+  .your-rank-chip.in-top10 {
+    background: linear-gradient(135deg, rgba(245,185,55,0.20), rgba(251,191,36,0.10));
+    border-color: rgba(245,185,55,0.35);
+  }
+  .your-rank-chip-icon {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-bright), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 800; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .your-rank-chip.in-top10 .your-rank-chip-icon {
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #3a1f0a;
+  }
+  .your-rank-chip-body { flex: 1; min-width: 0; }
+  .your-rank-chip-headrow {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 3px; min-width: 0;
+  }
+  .your-rank-chip-line1 {
+    font-size: 13px; font-weight: 700; color: white;
+    flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .your-rank-chip-headrow .pro-chip { flex-shrink: 0; }
+  .your-rank-chip-line2 {
+    font-size: 11.5px; color: var(--text-secondary); line-height: 1.3;
+    overflow: hidden;
+  }
+  .your-rank-chip-line2 strong { color: var(--gold); font-weight: 700; }
+  .your-rank-chip-arrow {
+    color: var(--text-tertiary); font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Rules CTA card (replaces duplicate formula on leaderboard) */
+  .rules-cta {
+    background: var(--bg-card);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin: 8px 0 12px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.15s;
+  }
+  .rules-cta:active { background: var(--bg-card-2); }
+  .rules-cta-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple-bright), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .rules-cta-body { flex: 1; min-width: 0; }
+  .rules-cta-title { font-size: 14px; font-weight: 700; color: white; margin-bottom: 2px; }
+  .rules-cta-sub { font-size: 11.5px; color: var(--text-secondary); }
+  .rules-cta-arrow { color: var(--gold); font-size: 18px; font-weight: 800; flex-shrink: 0; }
+
+  /* CTA Button */
+  .cta-button {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin: 18px 0 8px;
+    background: linear-gradient(135deg, var(--purple), var(--purple-deep));
+    color: white; border: none;
+    padding: 18px 36px; border-radius: 18px;
+    font-size: 15px; font-weight: 800;
+    cursor: pointer; letter-spacing: 0.3px;
+    box-shadow: 0 8px 24px rgba(139,92,246,0.4);
+    font-family: inherit;
+    width: 100%;
+  }
+  .cta-button.gold {
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #3a1f0a;
+    box-shadow: 0 8px 24px rgba(245,185,55,0.35);
+  }
+  .cta-button:active { transform: scale(0.98); }
+
+  /* Bottom Nav (leaderboard-specific) */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: #0a0a0a;
+    padding: 10px 8px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 4px;
+    z-index: 50;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .nav-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    color: var(--text-tertiary);
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.2px; cursor: pointer;
+    padding: 6px 10px; border-radius: 14px;
+    transition: all 0.2s;
+    flex: 1; min-width: 0;
+    text-align: center;
+  }
+  .nav-item .nav-emoji { font-size: 22px; line-height: 1; }
+  .nav-item.active {
+    color: var(--gold);
+    background: rgba(245,185,55,0.10);
+  }
+  .nav-item.active .nav-emoji { transform: scale(1.1); }
+
+  /* Home Indicator */
+  .home-indicator {
+    position: absolute;
+    bottom: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 134px; height: 5px;
+    background: rgba(255,255,255,0.35);
+    border-radius: 999px; z-index: 100;
+    pointer-events: none;
+  }
+
+  /* Empty State (search no match) */
+  .empty-state {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 28px 22px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .empty-state .empty-emoji { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px; }
+
+  /* ============ HOW IT WORKS / KAISE JEETO Screen ============ */
+  .video-card {
+    background: linear-gradient(135deg, #2a1638, #1a0f28);
+    border-radius: 22px;
+    padding: 0;
+    margin-bottom: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(167,139,250,0.25);
+    position: relative;
+    cursor: pointer;
+  }
+  .video-thumb {
+    aspect-ratio: 16 / 9;
+    min-height: 200px;
+    background: linear-gradient(135deg, #6d28d9 0%, #a78bfa 50%, #f5b937 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    padding: 20px;
+  }
+  .video-thumb::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.25), transparent 60%);
+    pointer-events: none;
+  }
+  .video-thumb .pattern {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(255,255,255,0.15) 2px, transparent 3px),
+      radial-gradient(circle at 80% 30%, rgba(255,255,255,0.12) 3px, transparent 4px),
+      radial-gradient(circle at 40% 70%, rgba(255,255,255,0.18) 2px, transparent 3px),
+      radial-gradient(circle at 75% 75%, rgba(255,255,255,0.10) 4px, transparent 5px);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+  .video-overlay-title {
+    position: absolute; left: 16px; bottom: 50px;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    line-height: 1.3;
+    max-width: 60%;
+    z-index: 3;
+  }
+  .video-play-btn {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    position: relative; z-index: 2;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .video-card:active .video-play-btn { transform: scale(0.92); }
+  .video-play-btn svg {
+    width: 28px; height: 28px;
+    fill: #6d28d9;
+    margin-left: 4px;
+  }
+  .video-yt-chip {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(0,0,0,0.7);
+    color: white; font-size: 10px; font-weight: 800;
+    padding: 4px 8px; border-radius: 6px;
+    letter-spacing: 0.5px;
+    z-index: 3;
+  }
+  .video-duration {
+    position: absolute; bottom: 12px; right: 12px;
+    background: rgba(0,0,0,0.7);
+    color: white; font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 4px; z-index: 3;
+  }
+  .video-meta {
+    padding: 16px 18px;
+  }
+  .video-title {
+    font-size: 16px; font-weight: 800;
+    color: white; margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+  .video-sub {
+    font-size: 12px; color: var(--purple-bright);
+    font-weight: 600;
+  }
+
+  /* Step cards */
+  .steps-grid {
+    display: flex; flex-direction: column;
+    gap: 10px; margin-bottom: 16px;
+  }
+  .step-card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    border-left: 4px solid var(--gold);
+    position: relative;
+  }
+  .step-card.purple { border-left-color: var(--purple-bright); }
+  .step-card.pink { border-left-color: #f472b6; }
+  .step-card.mint { border-left-color: var(--mint-text); }
+  .step-num {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #3a1f0a;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .step-card.purple .step-num {
+    background: linear-gradient(135deg, var(--purple-bright), var(--purple));
+    color: white;
+  }
+  .step-card.pink .step-num {
+    background: linear-gradient(135deg, #f472b6, #ec4899);
+    color: white;
+  }
+  .step-card.mint .step-num {
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    color: white;
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step-title {
+    font-size: 14px; font-weight: 700;
+    color: white; margin-bottom: 3px;
+    letter-spacing: -0.2px;
+  }
+  .step-desc {
+    font-size: 12px; color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .step-emoji {
+    font-size: 32px; flex-shrink: 0;
+  }
+
+  /* Formula visualizer */
+  .formula-card {
+    background: linear-gradient(135deg, #1a1a2e, #1f1a35);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(167,139,250,0.18);
+  }
+  .formula-title {
+    font-size: 15px; font-weight: 700;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .formula-row {
+    display: flex; align-items: center;
+    gap: 10px; padding: 10px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.08);
+  }
+  .formula-row:last-child { border-bottom: none; }
+  .formula-emoji {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(245,185,55,0.15);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .formula-text { flex: 1; font-size: 13px; color: #d4d4d4; line-height: 1.4; }
+  .formula-text strong { color: white; }
+  .formula-points {
+    background: var(--gold);
+    color: #3a1f0a;
+    font-size: 13px; font-weight: 800;
+    padding: 4px 10px; border-radius: 8px;
+    flex-shrink: 0; white-space: nowrap;
+  }
+
+  /* Detail card (Completion rate + Redeem rate explainers) */
+  .detail-card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 18px 16px;
+    margin-bottom: 14px;
+  }
+  .detail-formula {
+    background: rgba(245,185,55,0.08);
+    border: 1px solid rgba(245,185,55,0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    color: white;
+    line-height: 1.5;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .detail-row {
+    display: flex; gap: 12px;
+    padding: 10px 0;
+  }
+  .detail-row:not(:last-child) {
+    border-bottom: 1px dashed rgba(255,255,255,0.06);
+  }
+  .detail-emoji {
+    width: 32px; height: 32px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .detail-body { flex: 1; min-width: 0; }
+  .detail-title {
+    font-size: 13px; font-weight: 700;
+    color: white; margin-bottom: 3px;
+  }
+  .detail-text {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .detail-text strong { color: white; }
+
+  /* ===== Base + Task + Rate-ladder (new mechanic) ===== */
+  .base-task-card {
+    background: linear-gradient(135deg, rgba(167,139,250,0.16), rgba(124,58,237,0.10));
+    border: 1px solid rgba(167,139,250,0.35);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .base-task-row {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .base-task-num {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.35);
+  }
+  .base-task-body { flex: 1; min-width: 0; }
+  .base-task-title {
+    font-size: 16px; font-weight: 800;
+    color: white; margin-bottom: 3px;
+  }
+  .base-task-sub {
+    font-size: 12.5px; color: #d4d4d4; line-height: 1.4;
+  }
+  .base-task-sub strong { color: #c4b5fd; }
+  .base-task-pill {
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    color: white;
+    font-size: 14px; font-weight: 800;
+    padding: 6px 12px; border-radius: 10px;
+    flex-shrink: 0; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .task-grid {
+    display: flex; flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .task-card {
+    background: var(--bg-card);
+    border: 1px solid rgba(245,185,55,0.18);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .task-step {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fbbf24, #f5b937);
+    color: #3a1f0a;
+    font-size: 14px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(245,185,55,0.30);
+  }
+  .task-emoji {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: rgba(245,185,55,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .task-body { flex: 1; min-width: 0; }
+  .task-title {
+    font-size: 14.5px; font-weight: 800;
+    color: white; margin-bottom: 2px;
+  }
+  .task-target {
+    font-size: 12px; color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .task-target strong { color: white; }
+  .task-bonus {
+    background: rgba(245,185,55,0.16);
+    color: var(--gold);
+    border: 1px solid rgba(245,185,55,0.35);
+    font-size: 13px; font-weight: 800;
+    padding: 5px 10px; border-radius: 8px;
+    flex-shrink: 0; white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .rate-ladder {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .rate-rung {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+  }
+  .rate-rung:not(:last-child) {
+    border-bottom: 1px dashed rgba(255,255,255,0.05);
+  }
+  .rate-rung-tier {
+    font-size: 12.5px; color: #d4d4d4;
+    flex-shrink: 0;
+    width: 84px;
+    line-height: 1.3;
+  }
+  .rate-rung-tier strong { color: white; }
+  .rate-rung-bar {
+    flex: 1; min-width: 0;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .rate-rung-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #fbbf24, #f5b937);
+    border-radius: 4px;
+  }
+  .rate-rung.rate-rung-max .rate-rung-fill {
+    background: linear-gradient(90deg, #34d399, #10b981);
+  }
+  .rate-rung-val {
+    font-size: 14px; font-weight: 800;
+    color: var(--gold);
+    flex-shrink: 0;
+    min-width: 42px; text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .rate-rung.rate-rung-max .rate-rung-val { color: #6ee7b7; }
+
+  /* My Score — task checklist */
+  .task-check-card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .task-check-base {
+    display: flex; flex-direction: column;
+    gap: 6px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 12px;
+  }
+  .task-check-base-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .task-check-base-emoji { font-size: 18px; }
+  .task-check-base-title {
+    flex: 1; font-size: 13px; font-weight: 700; color: white;
+  }
+  .task-check-base-val {
+    font-size: 13px; font-weight: 800; color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+  .task-check-progress {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .task-check-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #a78bfa, #7c3aed);
+    border-radius: 3px;
+  }
+  .task-check-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+  }
+  .task-check-row:not(:last-child) {
+    border-bottom: 1px dashed rgba(255,255,255,0.04);
+  }
+  .task-check-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .task-check-icon.done {
+    background: rgba(34,197,94,0.18);
+    color: #6ee7b7;
+  }
+  .task-check-body { flex: 1; min-width: 0; }
+  .task-check-name {
+    font-size: 13px; font-weight: 700; color: white;
+    margin-bottom: 2px;
+  }
+  .task-check-prog {
+    font-size: 11.5px; color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+  .task-check-prog strong { color: white; }
+  .task-check-bonus {
+    font-size: 12px; font-weight: 800;
+    padding: 4px 8px; border-radius: 6px;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .task-check-bonus.done {
+    background: rgba(34,197,94,0.18);
+    color: #6ee7b7;
+    border: 1px solid rgba(34,197,94,0.35);
+  }
+  .task-check-bonus.todo {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-tertiary);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .task-check-summary {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px;
+  }
+  .task-check-summary-label {
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .task-check-summary-val {
+    font-size: 18px; font-weight: 800; color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+  .task-check-summary-val.locked { color: var(--text-tertiary); }
+
+  /* ===== Circular progress (May 2026) — replaces row-style task checklist ===== */
+  .tasks-overview {
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg, rgba(245,185,55,0.12), rgba(245,185,55,0.04));
+    border: 1px solid rgba(245,185,55,0.25);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .tasks-overview-left { display: flex; flex-direction: column; gap: 2px; }
+  .tasks-overview-count {
+    font-size: 22px; font-weight: 900;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .tasks-overview-label {
+    font-size: 11px; color: var(--text-secondary);
+    letter-spacing: 0.2px;
+  }
+  .tasks-overview-cta {
+    font-size: 12px; font-weight: 700;
+    color: var(--gold);
+    text-align: right;
+    line-height: 1.3;
+    max-width: 60%;
+  }
+  .tasks-overview-cta strong { color: white; }
+
+  .circ-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .circ-task {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 12px 8px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .circ-task.done {
+    background: linear-gradient(135deg, rgba(34,197,94,0.14), rgba(34,197,94,0.06));
+    border-color: rgba(34,197,94,0.30);
+  }
+  .circ-progress {
+    position: relative;
+    width: 76px; height: 76px;
+    margin-bottom: 8px;
+  }
+  .circ-progress svg {
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .circ-progress-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 8;
+  }
+  .circ-progress-fill {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .circ-task.done .circ-progress-fill { stroke: #34d399; }
+  .circ-progress-inner {
+    position: absolute;
+    inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    line-height: 1.1;
+  }
+  .circ-progress-emoji { font-size: 22px; margin-bottom: 2px; }
+  .circ-progress-emoji.done-glow {
+    filter: drop-shadow(0 0 6px rgba(52,211,153,0.6));
+  }
+  .circ-progress-pct {
+    font-size: 11px; font-weight: 800;
+    color: white;
+    font-variant-numeric: tabular-nums;
+  }
+  .circ-task-name {
+    font-size: 12px; font-weight: 700;
+    color: white;
+    margin-top: 2px;
+  }
+  .circ-task-val {
+    font-size: 11px; color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+  .circ-task-val strong { color: white; }
+
+  /* Big base-task circle (100 games) */
+  .base-big-card {
+    background: linear-gradient(135deg, rgba(167,139,250,0.14), rgba(124,58,237,0.06));
+    border: 1px solid rgba(167,139,250,0.30);
+    border-radius: 18px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 12px;
+  }
+  .base-big-circ {
+    position: relative;
+    width: 96px; height: 96px;
+    flex-shrink: 0;
+  }
+  .base-big-circ svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .base-big-circ .circ-progress-bg { stroke-width: 10; }
+  .base-big-circ .circ-progress-fill {
+    stroke: #a78bfa; stroke-width: 10;
+  }
+  .base-big-card.done .base-big-circ .circ-progress-fill { stroke: #34d399; }
+  .base-big-inner {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    line-height: 1.1;
+  }
+  .base-big-num {
+    font-size: 18px; font-weight: 900;
+    color: white;
+    font-variant-numeric: tabular-nums;
+  }
+  .base-big-of {
+    font-size: 10px; color: var(--text-secondary);
+  }
+  .base-big-body { flex: 1; min-width: 0; }
+  .base-big-title {
+    font-size: 14px; font-weight: 800;
+    color: white; margin-bottom: 3px;
+  }
+  .base-big-sub {
+    font-size: 12px; color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .base-big-sub strong { color: #c4b5fd; }
+
+  /* Rate comparison — Pro Player vs Badge Upgrade */
+  .rate-compare-card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .rate-compare-title {
+    font-size: 13px; font-weight: 800;
+    color: var(--text-secondary);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .rate-compare-row {
+    display: flex; align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .rate-compare-cell {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+  }
+  .rate-compare-cell.winner {
+    background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.08));
+    border-color: rgba(34,197,94,0.45);
+  }
+  .rate-compare-cell.locked {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,255,255,0.04);
+    opacity: 0.7;
+  }
+  .rate-compare-cell.locked .rate-compare-val {
+    color: var(--text-tertiary);
+    font-size: 24px;
+  }
+  .rate-compare-lock-note {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    letter-spacing: 0.2px;
+  }
+
+  /* Headline rate display (replaces split comparison) */
+  .rate-headline {
+    text-align: center;
+    padding: 14px 8px 12px;
+    background: linear-gradient(135deg, rgba(245,185,55,0.14), rgba(245,185,55,0.04));
+    border: 1px solid rgba(245,185,55,0.30);
+    border-radius: 14px;
+    margin-bottom: 12px;
+  }
+  .rate-headline.locked {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.06);
+  }
+  .rate-headline-val {
+    font-size: 46px; font-weight: 900;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .rate-headline.locked .rate-headline-val {
+    color: var(--text-tertiary);
+    font-size: 36px;
+  }
+  .rate-headline-sub {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .rate-rule-explainer {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .rate-rule-emoji {
+    font-size: 22px;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+  .rate-rule-text {
+    flex: 1; min-width: 0;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .rate-rule-text strong {
+    color: white;
+    font-weight: 800;
+  }
+  .rate-compare-cap {
+    font-size: 11px; color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 4px;
+  }
+  .rate-compare-val {
+    font-size: 22px; font-weight: 900;
+    color: white;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .rate-compare-cell.winner .rate-compare-val { color: #6ee7b7; }
+  .rate-compare-vs {
+    font-size: 12px; color: var(--text-tertiary);
+    font-weight: 700;
+  }
+  .rate-compare-final {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    background: linear-gradient(135deg, rgba(245,185,55,0.12), rgba(245,185,55,0.04));
+    border: 1px solid rgba(245,185,55,0.30);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-top: 10px;
+  }
+  .rate-compare-final-label {
+    font-size: 13px; font-weight: 700;
+    color: white;
+  }
+  .rate-compare-final-val {
+    font-size: 30px; font-weight: 900;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .rate-compare-note {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* Big punchline rate display — shown after the task checklist */
+  .task-check-summary-big {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(245,185,55,0.10), rgba(245,185,55,0.04));
+    border: 1px solid rgba(245,185,55,0.25);
+    border-radius: 14px;
+    padding: 14px 12px;
+  }
+  .task-check-summary-val-big {
+    font-size: 38px; font-weight: 900;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    margin: 6px 0 4px;
+    letter-spacing: -1px;
+  }
+  .task-check-summary-val-big.locked { color: var(--text-tertiary); }
+  .task-check-summary-meta {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.3px;
+  }
+
+  /* Task explainer modal (bottom-sheet style, scoped to phone-screen) */
+  .task-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    border-radius: 36px;
+    overflow: hidden;
+  }
+  .task-modal.open {
+    display: flex;
+    animation: tm-fadein 0.18s ease-out;
+  }
+  @keyframes tm-fadein { from { opacity: 0; } to { opacity: 1; } }
+  .task-modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(2px);
+  }
+  .task-modal-sheet {
+    position: relative;
+    width: 100%;
+    background: #1a1a1a;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 12px 20px 24px;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
+    max-height: 80%;
+    overflow-y: auto;
+    animation: tm-slideup 0.28s cubic-bezier(0.22,1,0.36,1);
+    text-align: center;
+  }
+  @keyframes tm-slideup {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  .task-modal-handle {
+    width: 40px; height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    margin: 0 auto 14px;
+  }
+  .task-modal-emoji {
+    font-size: 52px;
+    margin-bottom: 6px;
+    display: inline-flex;
+    width: 80px; height: 80px;
+    align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(245,185,55,0.10);
+    border: 1px solid rgba(245,185,55,0.20);
+  }
+  .task-modal-title {
+    font-size: 22px; font-weight: 900;
+    color: white;
+    margin-bottom: 16px;
+    margin-top: 4px;
+  }
+  .task-modal-body {
+    text-align: left;
+    margin-bottom: 18px;
+  }
+  .task-modal-section {
+    margin-bottom: 14px;
+  }
+  .task-modal-section-label {
+    font-size: 10.5px;
+    color: var(--gold);
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .task-modal-section-text {
+    font-size: 13.5px;
+    color: white;
+    line-height: 1.55;
+  }
+  .task-modal-section-text strong { color: var(--gold); }
+  .task-modal-target-pill {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(245,185,55,0.18), rgba(245,185,55,0.08));
+    border: 1px solid rgba(245,185,55,0.35);
+    color: var(--gold);
+    font-weight: 800;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+  }
+  .task-modal-close-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #3a1f0a;
+    border: none;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 13px 16px;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .task-modal-close-btn:active { opacity: 0.85; }
+
+  /* Make circular task cards feel tappable */
+  .circ-task { cursor: pointer; transition: transform 0.12s ease; }
+  .circ-task:active { transform: scale(0.96); }
+  .circ-row-hint {
+    font-size: 10.5px;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin: -6px 0 14px;
+    letter-spacing: 0.2px;
+  }
+
+  /* Cohort chip — replaces individual rank, shows "X users at this level" */
+  .cohort-chip {
+    background: rgba(167,139,250,0.12);
+    border: 1px solid rgba(167,139,250,0.30);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: white;
+  }
+  .cohort-chip-emoji {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .cohort-chip-body { flex: 1; line-height: 1.35; }
+  .cohort-chip strong {
+    color: #c4b5fd;
+    font-weight: 800;
+  }
+  .cohort-chip-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* MAX rule callout — used in Kaise Jeeto explainer */
+  .max-rule-card {
+    background: linear-gradient(135deg, rgba(245,185,55,0.10), rgba(245,185,55,0.04));
+    border: 1px solid rgba(245,185,55,0.30);
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 14px;
+  }
+  .max-rule-icon {
+    font-size: 24px; flex-shrink: 0;
+  }
+  .max-rule-body { flex: 1; min-width: 0; }
+  .max-rule-title {
+    font-size: 14px; font-weight: 700;
+    color: white; line-height: 1.3;
+  }
+  .max-rule-title strong { color: var(--gold); }
+  .max-rule-sub {
+    font-size: 12px; color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* Completion-rate threshold chips (visual, no prose) */
+  .comp-thresholds {
+    display: flex; gap: 8px; margin-top: 4px;
+  }
+  .comp-th {
+    flex: 1; min-width: 0;
+    text-align: center;
+    padding: 12px 6px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+  }
+  .comp-th-range {
+    font-size: 13px; font-weight: 800;
+    color: white; margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .comp-th-pts {
+    font-size: 12px; font-weight: 800;
+    letter-spacing: 0.3px;
+  }
+  .comp-th.low {
+    background: rgba(239,68,68,0.10);
+    border-color: rgba(239,68,68,0.28);
+  }
+  .comp-th.low .comp-th-pts { color: #f87171; }
+  .comp-th.mid {
+    background: rgba(251,191,36,0.10);
+    border-color: rgba(251,191,36,0.30);
+  }
+  .comp-th.mid .comp-th-pts { color: #fbbf24; }
+  .comp-th.high {
+    background: rgba(34,197,94,0.14);
+    border-color: rgba(34,197,94,0.40);
+  }
+  .comp-th.high .comp-th-pts { color: #6ee7b7; }
+
+  /* Redeem rate examples */
+  .example-row {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .example-row:last-child { margin-bottom: 0; }
+  .example-label {
+    font-size: 10.5px; font-weight: 800;
+    color: var(--text-tertiary);
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .example-cols {
+    display: flex; align-items: center;
+    gap: 6px; flex-wrap: wrap;
+  }
+  .example-col {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 8px 10px;
+    text-align: center;
+    min-width: 0; flex: 1;
+  }
+  .example-col.winner {
+    background: linear-gradient(135deg, rgba(34,197,94,0.18), rgba(34,197,94,0.08));
+    border: 1px solid rgba(34,197,94,0.35);
+  }
+  .example-cap {
+    font-size: 10px; color: var(--text-tertiary);
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+  .example-val {
+    font-size: 17px; font-weight: 800;
+    color: white;
+    font-variant-numeric: tabular-nums;
+  }
+  .example-col.winner .example-val { color: #6ee7b7; }
+  .example-vs {
+    font-size: 10px; color: var(--text-tertiary);
+    font-weight: 700;
+  }
+  .example-arrow {
+    color: var(--gold);
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .example-note {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* Tip card */
+  .tip-card {
+    background: linear-gradient(135deg, #1a3a2a, #1a3a30);
+    border-radius: 18px; padding: 18px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(34,197,94,0.15);
+  }
+  .tip-card .tip-title {
+    font-size: 14px; font-weight: 800;
+    color: #6ee7b7; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tip-list {
+    list-style: none; display: flex; flex-direction: column; gap: 8px;
+  }
+  .tip-list li {
+    display: flex; gap: 10px;
+    font-size: 13px; color: #c8e8d4; line-height: 1.5;
+  }
+  .tip-list li .check { color: #6ee7b7; flex-shrink: 0; font-weight: 700; }
+  .tip-list li strong { color: white; }
+
+  /* Footer note */
+  .footer-note {
+    text-align: center; font-size: 11px;
+    color: var(--text-tertiary);
+    padding: 16px 0; line-height: 1.5;
+  }
+
+  /* Lang chip (Hindi / English) */
+  .lang-line {
+    font-size: 11px; color: var(--text-tertiary);
+    text-align: center; margin: 8px 0 0;
+    line-height: 1.5;
+  }
+
+  /* Updated line (Last updated + Next update) */
+  .updated-line {
+    display: flex; align-items: center;
+    gap: 6px; flex-wrap: wrap;
+    font-size: 11.5px; color: var(--text-secondary);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 12px; border-radius: 10px;
+    margin: -8px 0 14px;
+  }
+  .updated-line strong { color: white; font-weight: 700; }
+  .updated-line .updated-sep { opacity: 0.4; margin: 0 2px; }
+  .updated-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+    flex-shrink: 0;
+    animation: pulseDot 2s ease-in-out infinite;
+  }
+  @keyframes pulseDot {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(34,197,94,0.18); }
+    50% { box-shadow: 0 0 0 6px rgba(34,197,94,0.08); }
+  }
+
+  /* ========== MOBILE (≤768px) — strip phone-frame chrome, fullscreen the screen ========== */
+  @media (max-width: 768px) {
+    body {
+      padding: 0;
+      gap: 0;
+      background: #000;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+    .demo-controls {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      width: 100%;
+      border-radius: 0;
+      border: none;
+      border-bottom: 1px solid #1a1a1a;
+      background: #0a0a0a;
+      padding: 8px 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .demo-controls button { font-size: 12px; padding: 7px 12px; }
+    .phone-frame {
+      width: 100%;
+      max-width: none;
+      height: auto;
+      min-height: calc(100vh - 50px);
+      min-height: calc(100dvh - 50px);
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      flex: 1;
+    }
+    .phone-screen {
+      border-radius: 0;
+      width: 100%;
+      height: 100%;
+      min-height: calc(100vh - 50px);
+      min-height: calc(100dvh - 50px);
+    }
+    .screen-container { flex: 1; }
+    .home-indicator { display: none; }
+    .hero { height: 240px; }
+    .trophy-svg { width: 120px; height: 140px; }
+    .avatar-hero { width: 150px; height: 150px; font-size: 60px; margin-top: 30px; }
+    .main-card { padding: 20px 16px 24px; }
+    .score-value { font-size: 56px; }
+    .stat-card .stat-num { font-size: 26px; }
+    .ranked-row { padding: 10px 12px; gap: 10px; }
+    .ranked-avatar { width: 34px; height: 34px; font-size: 14px; }
+    .ranked-name { font-size: 13.5px; }
+    .ranked-meta { font-size: 10.5px; }
+    .video-thumb { height: 160px; }
+    .video-play-btn { width: 64px; height: 64px; }
+  }
+
+  /* Extra-small screens */
+  @media (max-width: 360px) {
+    .demo-controls button { font-size: 11px; padding: 6px 10px; }
+    .main-card { padding: 18px 14px 22px; }
+    .podium-card { padding: 12px 6px; }
+    .podium-name { font-size: 11px; }
+    .podium-card.first .podium-name { font-size: 13px; }
+    .score-value { font-size: 48px; }
+    .nav-item { font-size: 10px; padding: 6px 6px; }
+    .nav-item .nav-emoji { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ MOBILE-NUMBER GATE MODAL ============ -->
+<div class="lang-gate" id="lang-gate" style="display:none;">
+  <div class="lang-gate-card">
+    <div class="lang-gate-logo">
+      <div class="lang-gate-trophy">🏆</div>
+    </div>
+    <h2 class="lang-gate-title" data-i18n="gate_title">Pro Player Badge</h2>
+    <p class="lang-gate-sub" data-i18n="gate_sub">Apna FRND app mobile number daalo — leaderboard aapki language mein khulega.</p>
+
+    <div class="lang-gate-input-row">
+      <span class="lang-gate-prefix">+91</span>
+      <input type="tel" id="lang-gate-input" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="98XXXXXXXX" autocomplete="off" />
+    </div>
+    <div class="lang-gate-error" id="lang-gate-error"></div>
+
+    <button class="lang-gate-cta" id="lang-gate-submit" data-i18n="gate_submit">Leaderboard kholo</button>
+
+    <div class="lang-gate-divider"><span data-i18n="gate_or">ya</span></div>
+
+    <div class="lang-gate-picker">
+      <div class="lang-gate-picker-label" data-i18n="gate_picker_label">Direct language chuno:</div>
+      <div class="lang-gate-chips">
+        <button class="lang-chip" data-lang="en">
+          <span class="lang-chip-name">English</span>
+          <span class="lang-chip-native">English</span>
+        </button>
+        <button class="lang-chip" data-lang="hi">
+          <span class="lang-chip-name">Hindi</span>
+          <span class="lang-chip-native">हिन्दी</span>
+        </button>
+        <button class="lang-chip" data-lang="te">
+          <span class="lang-chip-name">Telugu</span>
+          <span class="lang-chip-native">తెలుగు</span>
+        </button>
+        <button class="lang-chip" data-lang="ta">
+          <span class="lang-chip-name">Tamil</span>
+          <span class="lang-chip-native">தமிழ்</span>
+        </button>
+        <button class="lang-chip" data-lang="ml">
+          <span class="lang-chip-name">Malayalam</span>
+          <span class="lang-chip-native">മലയാളം</span>
+        </button>
+        <button class="lang-chip" data-lang="kn">
+          <span class="lang-chip-name">Kannada</span>
+          <span class="lang-chip-native">ಕನ್ನಡ</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="lang-gate-footer" data-i18n="gate_footer">Aapka mobile number sirf language detect karne ke liye use hota hai.</div>
+  </div>
+</div>
+
+<div class="demo-controls">
+  <button data-screen="score" class="active" data-i18n="nav_score">My Score</button>
+  <button data-screen="howto" data-i18n="nav_howto">Kaise Jeeto</button>
+  <button class="lang-switcher" id="lang-switcher" title="Change language anytime">🌐 <span class="lang-sw-current" id="lang-switcher-current">हिन्दी</span></button>
+</div>
+
+<div class="phone-frame">
+  <div class="phone-screen">
+
+    <!-- Task explainer modal (Fans / Reach / Complete) -->
+    <div class="task-modal" id="task-modal" aria-hidden="true">
+      <div class="task-modal-backdrop" data-task-modal-close></div>
+      <div class="task-modal-sheet" role="dialog" aria-modal="true">
+        <div class="task-modal-handle"></div>
+        <div class="task-modal-emoji" id="task-modal-emoji">🔁</div>
+        <div class="task-modal-title" id="task-modal-title">Fans Banao</div>
+        <div class="task-modal-body" id="task-modal-body"></div>
+        <button class="task-modal-close-btn" data-task-modal-close>Got it</button>
+      </div>
+    </div>
+
+    <div class="screen-container">
+
+
+      <!-- ============================ SCREEN 1: MY SCORE ============================ -->
+      <div class="screen active" id="screen-score">
+        <div class="screen-content">
+          <div class="hero hero-pink">
+            <span class="sparkle s1">✨</span>
+            <span class="sparkle s2">⭐</span>
+            <span class="sparkle s3">✨</span>
+
+            <div class="avatar-hero" id="score-avatar">
+              <div class="ring"></div>
+              <span id="score-avatar-emoji">👩</span>
+              <div class="badge-corner">⭐ PRO</div>
+            </div>
+          </div>
+
+          <div class="main-card">
+            <div class="identity-card">
+              <div class="avatar" id="score-id-avatar">👩</div>
+              <div class="identity-info">
+                <div class="identity-name" id="score-name">—</div>
+                <div class="identity-sub">
+                  <span class="status-dot"></span>
+                  <span id="score-mobile">—</span>
+                  <span id="score-tier-badge"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tier progress card -->
+            <div class="info-card" id="tier-progress-card">
+              <div class="info-card-title">
+                <span class="info-card-icon">🪜</span>
+                <span data-i18n="your_tier_title">Aapka Tier</span>
+              </div>
+              <div id="tier-progress-body"></div>
+            </div>
+
+            <!-- Cohort chip: shows how many hosts are at the same task-completion level -->
+            <div class="cohort-chip" id="cohort-chip"></div>
+
+            <div class="info-card">
+              <div class="info-card-title">
+                <span class="info-card-icon">⚡</span>
+                <span data-i18n="climb_title">Aapka task progress</span>
+              </div>
+              <div id="climb-tips"></div>
+            </div>
+
+            <button class="cta-button" onclick="document.querySelector('[data-screen=howto]').click()">
+              <span>📺</span> <span data-i18n="cta_watch_video">Video dekho · Kaise Jeeto</span>
+            </button>
+
+            <div class="footer-note" data-i18n="score_footer">Score weekly update hota hai · Mehnat se reward</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================ SCREEN 3: HOW IT WORKS (KAISE JEETO) ============================ -->
+      <div class="screen" id="screen-howto">
+        <div class="screen-content">
+          <div class="hero hero-blue">
+            <span class="sparkle s1">✨</span>
+            <span class="sparkle s2">⭐</span>
+            <span class="sparkle s3">✨</span>
+            <span class="sparkle s5">⭐</span>
+
+            <div class="trophy-illustration" style="margin-top:50px;">
+              <div style="font-size:80px;">🎯</div>
+              <div class="trophy-caption">Kaise Jeeto?</div>
+              <div class="trophy-sub">How to win the Pro Player Badge</div>
+            </div>
+          </div>
+
+          <div class="main-card">
+
+            <!-- VIDEO CARD -->
+            <a class="video-card" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;">
+              <div class="video-thumb">
+                <div class="pattern"></div>
+                <div class="video-yt-chip">▶ YOUTUBE</div>
+                <div class="video-overlay-title" data-i18n="video_overlay_title">Pro Player Badge<br>Full Guide</div>
+                <div class="video-play-btn">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+                <div class="video-duration">2:14</div>
+              </div>
+              <div class="video-meta">
+                <div class="video-title" data-i18n="video_title">Pro Player Badge · Full Guide</div>
+                <div class="video-sub" data-i18n="video_sub">▶ 2 min · Step-by-step samjho</div>
+              </div>
+            </a>
+
+            <p class="lang-line" data-i18n="video_lang_line">
+              Sab kuch · 2 min
+            </p>
+
+            <!-- Tier Ladder (progress format) -->
+            <div class="section-header">
+              <div class="section-icon">🏅</div>
+              <div class="section-title" data-i18n="ladder_title">Tier Ladder</div>
+              <span class="section-sub" data-i18n="ladder_sub">Aap kahaan ho?</span>
+            </div>
+
+            <div class="tier-progress-card" id="tier-progress-howto">
+              <div class="tier-progress-track">
+                <div class="tier-progress-fill-bar" id="tier-fill-bar"></div>
+                <div class="tier-milestone milestone-start" style="left:0%;">
+                  <div class="milestone-dot rookie">🌱</div>
+                  <div class="milestone-label" data-i18n="ladder_start">Start</div>
+                </div>
+                <div class="tier-milestone milestone-aspiring" style="left:25%;">
+                  <div class="milestone-dot aspiring">🚀</div>
+                  <div class="milestone-label" data-i18n="ladder_aspiring_short">Aspiring<br>Pro Player</div>
+                  <div class="milestone-target">25</div>
+                </div>
+                <div class="tier-milestone milestone-pro" style="left:100%;">
+                  <div class="milestone-dot pro">⭐</div>
+                  <div class="milestone-label" data-i18n="ladder_pro_short">Pro Player</div>
+                  <div class="milestone-target">100</div>
+                </div>
+                <div class="you-marker" id="you-marker">
+                  <div class="you-marker-tip"></div>
+                  <div class="you-marker-text" id="you-marker-text">YOU · 16</div>
+                </div>
+              </div>
+              <div class="tier-progress-legend">
+                <div class="tier-progress-legend-row">
+                  <span class="pro-chip aspiring">🚀 ASPIRING PRO PLAYER</span>
+                  <span data-i18n="ladder_aspiring_req2"><strong>25–99</strong> games</span>
+                </div>
+                <div class="tier-progress-legend-row">
+                  <span class="pro-chip">⭐ PRO PLAYER</span>
+                  <span data-i18n="ladder_pro_req2"><strong>100+</strong> games · 1.0–1.5× rate</span>
+                </div>
+              </div>
+              <div class="tier-ladder-row" style="display:none;">
+                <div class="tier-ladder-step aspiring">🚀</div>
+                <div class="tier-ladder-body">
+                  <div class="tier-ladder-name">Aspiring Pro Player</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BASE: 100 games unlocks Pro Player + 1.0× -->
+            <div class="section-header">
+              <div class="section-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed);">🎯</div>
+              <div class="section-title" data-i18n="base_section_title">Step 1 · Base</div>
+            </div>
+
+            <div class="base-task-card">
+              <div class="base-task-row">
+                <div class="base-task-num">🏆</div>
+                <div class="base-task-body">
+                  <div class="base-task-title" data-i18n="base_task_title">100 games complete</div>
+                  <div class="base-task-sub" data-i18n="base_task_sub">Pro Player unlock · base <strong>1.0×</strong></div>
+                </div>
+                <div class="base-task-pill">1.0×</div>
+              </div>
+            </div>
+
+            <!-- 3 BONUS TASKS — simple step numbers, no per-task rate noise -->
+            <div class="section-header">
+              <div class="section-icon" style="background:linear-gradient(135deg,#fbbf24,#f5b937);">⚡</div>
+              <div class="section-title" data-i18n="tasks_section_title">Step 2 · 3 Bonus Tasks</div>
+              <span class="section-sub" data-i18n="tasks_section_sub">All 3 = MAX 1.5×</span>
+            </div>
+
+            <div class="task-grid">
+              <div class="task-card">
+                <div class="task-step">1</div>
+                <div class="task-emoji">🔁</div>
+                <div class="task-body">
+                  <div class="task-title" data-i18n="task1_title">Fans Banao</div>
+                  <div class="task-target" data-i18n="task1_target"><strong>15</strong> fans</div>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="task-step">2</div>
+                <div class="task-emoji">👥</div>
+                <div class="task-body">
+                  <div class="task-title" data-i18n="task2_title">Reach Badao</div>
+                  <div class="task-target" data-i18n="task2_target"><strong>50</strong> players</div>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="task-step">3</div>
+                <div class="task-emoji">✅</div>
+                <div class="task-body">
+                  <div class="task-title" data-i18n="task3_title">Pura Khelo</div>
+                  <div class="task-target" data-i18n="task3_target"><strong>50%+</strong> complete</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RATE LADDER: simplified — show only what you GET at each tier -->
+            <div class="section-header">
+              <div class="section-icon" style="background:linear-gradient(135deg,#34d399,#10b981);">💰</div>
+              <div class="section-title" data-i18n="ladder_rate_title">Your reward</div>
+            </div>
+
+            <div class="rate-ladder">
+              <div class="rate-rung">
+                <div class="rate-rung-tier" data-i18n="rate_tier_base">Base only</div>
+                <div class="rate-rung-bar"><div class="rate-rung-fill" style="width:20%;"></div></div>
+                <div class="rate-rung-val">1.0×</div>
+              </div>
+              <div class="rate-rung">
+                <div class="rate-rung-tier" data-i18n="rate_tier_1">1 task done</div>
+                <div class="rate-rung-bar"><div class="rate-rung-fill" style="width:40%;"></div></div>
+                <div class="rate-rung-val">1.1×</div>
+              </div>
+              <div class="rate-rung">
+                <div class="rate-rung-tier" data-i18n="rate_tier_2">2 tasks done</div>
+                <div class="rate-rung-bar"><div class="rate-rung-fill" style="width:60%;"></div></div>
+                <div class="rate-rung-val">1.2×</div>
+              </div>
+              <div class="rate-rung rate-rung-max">
+                <div class="rate-rung-tier" data-i18n="rate_tier_3"><strong>All 3</strong> · MAX</div>
+                <div class="rate-rung-bar"><div class="rate-rung-fill" style="width:100%;"></div></div>
+                <div class="rate-rung-val">1.5×</div>
+              </div>
+            </div>
+
+            <!-- MAX rule callout: Pro Player rate OR Badge Upgrade rate -->
+            <div class="max-rule-card">
+              <div class="max-rule-icon">⚖️</div>
+              <div class="max-rule-body">
+                <div class="max-rule-title" data-i18n="max_rule_title">Pro Player <strong>OR</strong> Badge Upgrade</div>
+                <div class="max-rule-sub" data-i18n="max_rule_sub">Jo bhi zyada — wahi rate aapko milega</div>
+              </div>
+            </div>
+
+            <!-- Reward Card -->
+            <div class="reward-card">
+              <div class="reward-shield">
+                <div class="reward-badge-img" data-i18n="reward_badge_text">⭐ PRO PLAYER</div>
+              </div>
+              <div class="reward-title" data-i18n="reward_title">Aapko kya milega?</div>
+              <ul class="reward-list">
+                <li><span class="check">✓</span> <span data-i18n="reward_item_1"><strong>Exclusive Pro Badge</strong></span></li>
+                <li><span class="check">✓</span> <span data-i18n="reward_item_2"><strong>New Game</strong> Exclusive Access</span></li>
+                <li><span class="check">✓</span> <span data-i18n="reward_item_3"><strong>1.0–1.5×</strong> conversion rate</span></li>
+                <li><span class="check">✓</span> <span data-i18n="reward_item_4">Naye players</span></li>
+                <li><span class="check">✓</span> <span data-i18n="reward_item_5">Fans ka network</span></li>
+              </ul>
+            </div>
+
+            <!-- Tips (reframed) -->
+            <div class="tip-card">
+              <div class="tip-title" data-i18n="tips_title">💡 Top players kya alag karte hain</div>
+              <ul class="tip-list">
+                <li><span class="check">✓</span> <span data-i18n="tip_1"><strong>Pehle 30 sec</strong> — naam + energy</span></li>
+                <li><span class="check">✓</span> <span data-i18n="tip_2"><strong>Sune zyada, bolen kam</strong></span></li>
+                <li><span class="check">✓</span> <span data-i18n="tip_3"><strong>Tareef chhoti, par sachhi</strong></span></li>
+                <li><span class="check">✓</span> <span data-i18n="tip_4"><strong>Aakhri 30 sec</strong> — high pe khatam</span></li>
+                <li><span class="check">✓</span> <span data-i18n="tip_5"><strong>Repeat user yaad rakho</strong></span></li>
+                <li><span class="check">✓</span> <span data-i18n="tip_6"><strong>Silence mein sawal poocho</strong></span></li>
+              </ul>
+            </div>
+
+            <button class="cta-button gold" onclick="document.querySelector('[data-screen=leaderboard]').click()">
+              <span>🏆</span> Leaderboard dekho
+            </button>
+
+            <div class="footer-note">
+              Khelo · Jeeto · Reward camao 💪
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Nav -->
+      <div class="bottom-nav">
+        <div class="nav-item active" data-nav="score">
+          <span class="nav-emoji">⭐</span>
+          <span>MY SCORE</span>
+        </div>
+        <div class="nav-item" data-nav="howto">
+          <span class="nav-emoji">📺</span>
+          <span>KAISE JEETO</span>
+        </div>
+      </div>
+
+      <div class="home-indicator"></div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================================== -->
+<!-- CONFIG: set this to your deployed Apps Script Web App /exec URL. -->
+<!-- It must be the public form (no /a/macros/DOMAIN/ in the path).   -->
+<!-- =============================================================== -->
+<script>
+  window.PRO_PLAYER_API_URL = "https://script.google.com/macros/s/AKfycbwukRGp_7-XBcKwHnkJGWN2LDnyi3-2yAyyL-_ydRYaX2WrGtSGx_D6HSpXHItuzfWGHg/exec";
+</script>
+
+<script>
+// ====================================================================
+// I18N — Dictionary + lang detection + DOM swapping
+// Languages: en, hi (Hinglish, default), te (Telugu), ta (Tamil),
+//            ml (Malayalam), kn (Kannada). Others → en.
+// NOTE: Te/Ta/Ml/Kn translations are AI-drafted and need native review
+// before production.
+// ====================================================================
+const I18N = {
+  en: {
+    // Demo controls / nav
+    nav_leaderboard: 'Leaderboard', nav_score: 'My Score', nav_howto: 'How to Win',
+    // Gate
+    gate_title: 'Pro Player Badge',
+    gate_sub: 'Enter your FRND app mobile number — leaderboard will open in your language.',
+    gate_submit: 'Open Leaderboard', gate_or: 'or',
+    gate_picker_label: 'Or pick a language directly:',
+    gate_footer: 'Your mobile number is only used to detect your language.',
+    gate_err_invalid: 'Please enter a valid 10-digit mobile number',
+    // Leaderboard
+    hero_title: 'Pro Player Badge', hero_sub: 'Top 10 · This week',
+    search_placeholder: 'Search by name or mobile…',
+    top10_count_label: '<strong>Top 10</strong> Pro Players',
+    last_updated_label: 'Last updated:', next_label: 'Next:',
+    podium_title: 'Top 3 Pro Players', podium_sub: 'This week',
+    rest_title: 'Rest of Top 10',
+    empty_title: 'This player isn\'t in Top 10',
+    empty_text: 'Only the Top 10 Pro Players appear here.<br>Check your own score under <strong style="color:white;">My Score</strong>.',
+    empty_cta: 'See how to win',
+    rules_cta_title: 'How to win?', rules_cta_sub: '2 min video · Rules + tips',
+    leaderboard_footer: 'Top 10 Pro Players · Refresh every 4 hours<br>Eligibility: 100+ games complete (demo: 10+)',
+    // My Score
+    your_tier_title: 'Your Tier', your_tier_title_other: '{name}\'s Tier',
+    score_label: 'Your Pro Player Score', score_label_other: '{name}\'s Pro Player Score',
+    viewing_other_note: 'You\'re viewing {name}\'s public profile.', score_unit: 'points',
+    stat_games: 'Games complete', stat_fans: 'Fans',
+    stat_completion: 'Completion %', stat_reach: 'Unique players',
+    redeem_text: '100 games = <strong style="color:white;">1.0×</strong> base.<br>All 3 tasks = <strong style="color:white;">1.5×</strong> MAX',
+    climb_title: 'Your task progress',
+    cta_watch_video: 'Watch video · How to Win',
+    score_footer: 'Score updates every 4 hours · Earn by playing',
+    // Kaise Jeeto
+    howto_hero_title: 'How to Win?',
+    howto_hero_sub: 'How to earn the Pro Player Badge',
+    video_overlay_title: 'Pro Player Badge<br>Full Guide',
+    video_title: 'Pro Player Badge · Full Guide',
+    video_sub: '▶ 2 min · Step-by-step explainer',
+    video_lang_line: 'All in 2 min',
+    ladder_title: 'Tier Ladder', ladder_sub: 'Where are you?',
+    ladder_start: 'Start',
+    ladder_aspiring_short: 'Aspiring<br>Pro Player', ladder_pro_short: 'Pro Player',
+    ladder_aspiring_req2: '<strong>25–99</strong> games',
+    ladder_pro_req2: '<strong>100+</strong> games · 1.0–1.5× rate',
+    // New mechanic — Base + 3 tasks + rate ladder (simplified May 2026)
+    base_section_title: 'Step 1 · Base',
+    base_task_title: '100 games complete',
+    base_task_sub: 'Pro Player unlock · base <strong>1.0×</strong>',
+    tasks_section_title: 'Step 2 · 3 Bonus Tasks',
+    tasks_section_sub: 'All 3 = MAX 1.5×',
+    task1_title: 'Fans Banao',
+    task1_target: '<strong>15</strong> fans',
+    task2_title: 'Reach Badao',
+    task2_target: '<strong>50</strong> players',
+    task3_title: 'Pura Khelo',
+    task3_target: '<strong>50%+</strong> complete',
+    ladder_rate_title: 'Your reward',
+    max_rule_title: 'Pro Player <strong>OR</strong> Badge Upgrade',
+    max_rule_sub: 'Whichever rate is higher — that\'s what you get',
+    rate_tier_base: 'Base only',
+    rate_tier_1: '1 task done',
+    rate_tier_2: '2 tasks done',
+    rate_tier_3: '<strong>All 3</strong> · MAX',
+    steps_title: '5 Steps to the Badge',
+    step1_title: 'Play the game',
+    step1_desc: '',
+    step2_title: 'Complete it',
+    step2_desc: '',
+    step3_title: 'Build fans',
+    step3_desc: '',
+    step4_title: '100 games = Pro Player entry',
+    step4_desc: '',
+    step5_title: '1.10× redeem rate',
+    step5_desc: '',
+    points_section_title: 'How points are earned',
+    formula_game: 'Each <strong>complete game</strong>',
+    formula_fans: 'Each <strong>5 fans</strong> (biggest bonus!)',
+    formula_comp_30: 'Completion rate <strong>30–50%</strong>',
+    formula_comp_50: 'Completion rate <strong>50%+</strong>',
+    formula_reach: 'Each <strong>5 new players</strong>',
+    comp_section_title: 'Understand completion rate',
+    comp_what: 'What is it?',
+    comp_what_desc: 'The percentage of games you started vs. finished. Dropping a game mid-way lowers your completion rate.',
+    comp_target: 'Target',
+    comp_target_desc: '<strong>50%+</strong> = +20 bonus pts · <strong>30–50%</strong> = +10 bonus pts · <strong>Under 30%</strong> = no bonus.',
+    comp_tip: 'Tip',
+    comp_tip_desc: 'Only start a game in calls where you have time to finish. Fewer games — but completed — pushes your rate faster.',
+    rate_section_title: 'Redeem rate — how it works',
+    rate_rule: '<strong>Pro Player 1.10× <span style="color:var(--gold);">OR</span> Badge Upgrade — whichever higher</strong>',
+    example_1_label: 'Example 1',
+    example_badge_upgrade: 'Badge Upgrade', example_pro_player: 'Pro Player', example_you_get: 'You get',
+    example_1_note: '',
+    example_2_label: 'Example 2',
+    example_badge_upgrade2: 'Badge Upgrade', example_pro_player2: 'Pro Player', example_you_get2: 'You get',
+    example_2_note: '',
+    reward_badge_text: '⭐ PRO PLAYER',
+    reward_title: 'What you unlock',
+    reward_item_1: '<strong>Exclusive Pro Badge</strong>',
+    reward_item_2: '<strong>New Game</strong> Exclusive Access',
+    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_4: 'New players come to you',
+    reward_item_5: 'Network of fans',
+    tips_title: '💡 What top players do differently',
+    tip_1: '<strong>First 30 sec</strong> — name + energy',
+    tip_2: '<strong>Listen more, talk less</strong>',
+    tip_3: '<strong>Small, sincere compliments</strong>',
+    tip_4: '<strong>Last 30 sec</strong> — end on a high',
+    tip_5: '<strong>Recognise repeat users</strong>',
+    tip_6: '<strong>Ask in silences</strong>',
+    cta_view_leaderboard: 'View Leaderboard',
+    howto_footer: 'Play · Win · Earn rewards 💪',
+  },
+  hi: {
+    // Hinglish — keeps current voice
+    nav_leaderboard: 'Leaderboard', nav_score: 'My Score', nav_howto: 'Kaise Jeeto',
+    gate_title: 'Pro Player Badge',
+    gate_sub: 'Apna FRND app mobile number daalo — leaderboard aapki language mein khulega.',
+    gate_submit: 'Leaderboard kholo', gate_or: 'ya',
+    gate_picker_label: 'Ya direct language chuno:',
+    gate_footer: 'Aapka mobile number sirf language detect karne ke liye use hota hai.',
+    gate_err_invalid: 'Sahi 10-digit mobile number daalo',
+    hero_title: 'Pro Player Badge', hero_sub: 'Top 10 · Is hafte',
+    search_placeholder: 'Apna naam ya mobile dhundo...',
+    top10_count_label: '<strong>Top 10</strong> Pro Players',
+    last_updated_label: 'Last updated:', next_label: 'Next:',
+    podium_title: 'Top 3 Pro Players', podium_sub: 'Is hafte',
+    rest_title: 'Rest of Top 10',
+    empty_title: 'Yeh player Top 10 mein nahi hai',
+    empty_text: 'Sirf Top 10 Pro Players is leaderboard pe dikhte hain.<br>Apna score check karne ke liye <strong style="color:white;">My Score</strong> tab pe jao.',
+    empty_cta: 'Dekho kaise jeeto',
+    rules_cta_title: 'Kaise jeeto?', rules_cta_sub: '2 min ka video · Rules + tips',
+    leaderboard_footer: 'Top 10 Pro Players · Har 4 ghante mein update<br>Eligibility: 100+ games complete (demo: 10+)',
+    your_tier_title: 'Aapka Tier', your_tier_title_other: '{name} ka Tier',
+    score_label: 'Aapka Pro Player Score', score_label_other: '{name} ka Pro Player Score',
+    viewing_other_note: 'Aap {name} ka public profile dekh rahe ho.', score_unit: 'points',
+    stat_games: 'Games complete', stat_fans: 'Fans',
+    stat_completion: 'Completion %', stat_reach: 'Unique players',
+    redeem_text: '100 games = <strong style="color:white;">1.0×</strong> base.<br>Saare 3 tasks = <strong style="color:white;">1.5×</strong> MAX',
+    climb_title: 'Aapka task progress',
+    cta_watch_video: 'Video dekho · Kaise Jeeto',
+    score_footer: 'Score har 4 ghante mein update hota hai · Mehnat se reward',
+    howto_hero_title: 'Kaise Jeeto?',
+    howto_hero_sub: 'Pro Player Badge kaise jeeto',
+    video_overlay_title: 'Pro Player Badge<br>Full Guide',
+    video_title: 'Pro Player Badge · Full Guide',
+    video_sub: '▶ 2 min · Step-by-step samjho',
+    video_lang_line: 'Sab kuch · 2 min',
+    ladder_title: 'Tier Ladder', ladder_sub: 'Aap kahaan ho?',
+    ladder_start: 'Start',
+    ladder_aspiring_short: 'Aspiring<br>Pro Player', ladder_pro_short: 'Pro Player',
+    ladder_aspiring_req2: '<strong>25–99</strong> games',
+    ladder_pro_req2: '<strong>100+</strong> games · 1.0–1.5× rate',
+    // New mechanic — Base + 3 tasks + rate ladder (simplified May 2026)
+    base_section_title: 'Step 1 · Base',
+    base_task_title: '100 games complete',
+    base_task_sub: 'Pro Player unlock · base <strong>1.0×</strong>',
+    tasks_section_title: 'Step 2 · 3 Bonus Tasks',
+    tasks_section_sub: 'Saare 3 = MAX 1.5×',
+    task1_title: 'Fans Banao',
+    task1_target: '<strong>15</strong> fans',
+    task2_title: 'Reach Badao',
+    task2_target: '<strong>50</strong> players',
+    task3_title: 'Pura Khelo',
+    task3_target: '<strong>50%+</strong> complete',
+    ladder_rate_title: 'Aapka reward',
+    max_rule_title: 'Pro Player <strong>YA</strong> Badge Upgrade',
+    max_rule_sub: 'Jo bhi zyada — wahi rate aapko milega',
+    rate_tier_base: 'Base only',
+    rate_tier_1: '1 task done',
+    rate_tier_2: '2 tasks done',
+    rate_tier_3: '<strong>All 3</strong> · MAX',
+    steps_title: '5 Steps · Badge tak ka rasta',
+    step1_title: 'Game khelo',
+    step1_desc: '',
+    step2_title: 'Pura kheliye',
+    step2_desc: '',
+    step3_title: 'Fans Banao',
+    step3_desc: '',
+    step4_title: '100 games = Pro Player entry',
+    step4_desc: '',
+    step5_title: '1.10× redeem rate',
+    step5_desc: '',
+    points_section_title: 'Points kaise milte hain',
+    formula_game: 'Har <strong>complete game</strong>',
+    formula_fans: 'Har <strong>5 fans</strong> (sabse bada bonus!)',
+    formula_comp_30: 'Completion rate <strong>30–50%</strong>',
+    formula_comp_50: 'Completion rate <strong>50%+</strong>',
+    formula_reach: 'Har <strong>5 naye players</strong>',
+    comp_section_title: 'Completion rate samjho',
+    comp_what: 'Yeh kya hai?',
+    comp_what_desc: 'Aapne kitne games shuru kiye aur unmein se kitne pure khele — uska percentage. Game beech mein chhodna = completion rate girta hai.',
+    comp_target: 'Target',
+    comp_target_desc: '<strong>50%+</strong> = +20 bonus pts · <strong>30–50%</strong> = +10 bonus pts · <strong>30% se kam</strong> = bonus nahi milega.',
+    comp_tip: 'Tip',
+    comp_tip_desc: 'Sirf un calls ka game start karein jin ko aap pura khelne ka time hai. Kam games — but pure khelo — tezi se rate badhayega.',
+    rate_section_title: 'Redeem rate — kaise kaam karta hai',
+    rate_rule: '<strong>Pro Player 1.10× <span style="color:var(--gold);">YA</span> Badge Upgrade — jo zyada</strong>',
+    example_1_label: 'Example 1',
+    example_badge_upgrade: 'Badge Upgrade', example_pro_player: 'Pro Player', example_you_get: 'Aapko milega',
+    example_1_note: '',
+    example_2_label: 'Example 2',
+    example_badge_upgrade2: 'Badge Upgrade', example_pro_player2: 'Pro Player', example_you_get2: 'Aapko milega',
+    example_2_note: '',
+    reward_badge_text: '⭐ PRO PLAYER',
+    reward_title: 'Aapko kya milega?',
+    reward_item_1: '<strong>Exclusive Pro Badge</strong>',
+    reward_item_2: '<strong>New Game</strong> Exclusive Access',
+    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_4: 'Naye players',
+    reward_item_5: 'Fans ka network',
+    tips_title: '💡 Top players kya alag karte hain',
+    tip_1: '<strong>Pehle 30 sec</strong> — naam + energy',
+    tip_2: '<strong>Sune zyada, bolen kam</strong>',
+    tip_3: '<strong>Tareef chhoti, par sachhi</strong>',
+    tip_4: '<strong>Aakhri 30 sec</strong> — high pe khatam',
+    tip_5: '<strong>Repeat user yaad rakho</strong>',
+    tip_6: '<strong>Silence mein sawal poocho</strong>',
+    cta_view_leaderboard: 'Leaderboard dekho',
+    howto_footer: 'Khelo · Jeeto · Reward camao 💪',
+  },
+  // Telugu (AI-drafted — needs native review)
+  te: {
+    nav_leaderboard: 'లీడర్‌బోర్డ్', nav_score: 'నా స్కోర్', nav_howto: 'ఎలా గెలవాలి',
+    gate_title: 'ప్రో ప్లేయర్ బ్యాడ్జ్',
+    gate_sub: 'మీ FRND యాప్ మొబైల్ నంబర్ ఎంటర్ చేయండి — లీడర్‌బోర్డ్ మీ భాషలో తెరుచుకుంటుంది.',
+    gate_submit: 'లీడర్‌బోర్డ్ తెరువు', gate_or: 'లేదా',
+    gate_picker_label: 'లేదా నేరుగా భాష ఎంచుకోండి:',
+    gate_footer: 'మీ మొబైల్ నంబర్ కేవలం భాష గుర్తించడానికి మాత్రమే ఉపయోగిస్తాము.',
+    gate_err_invalid: 'సరైన 10-అంకెల మొబైల్ నంబర్ ఎంటర్ చేయండి',
+    hero_title: 'ప్రో ప్లేయర్ బ్యాడ్జ్', hero_sub: 'టాప్ 10 · ఈ వారం',
+    search_placeholder: 'పేరు లేదా మొబైల్ వెతకండి…',
+    top10_count_label: '<strong>టాప్ 10</strong> ప్రో ప్లేయర్లు',
+    last_updated_label: 'చివరి అప్‌డేట్:', next_label: 'తర్వాత:',
+    rest_title: 'మిగిలిన టాప్ 10',
+    empty_title: 'ఈ ప్లేయర్ టాప్ 10 లో లేరు',
+    empty_text: 'కేవలం టాప్ 10 ప్రో ప్లేయర్లు మాత్రమే ఇక్కడ కనిపిస్తారు.<br><strong style="color:white;">నా స్కోర్</strong> టాబ్ లో మీ స్కోర్ చూడండి.',
+    empty_cta: 'ఎలా గెలవాలో చూడండి',
+    rules_cta_title: 'ఎలా గెలవాలి?', rules_cta_sub: '2 నిమి వీడియో · రూల్స్ + చిట్కాలు',
+    leaderboard_footer: 'టాప్ 10 ప్రో ప్లేయర్లు · ప్రతి 4 గంటలకి అప్‌డేట్<br>అర్హత: 100+ గేమ్‌లు పూర్తి (డెమో: 10+)',
+    your_tier_title: 'మీ టైర్', your_tier_title_other: '{name} టైర్',
+    score_label: 'మీ ప్రో ప్లేయర్ స్కోర్', score_label_other: '{name} ప్రో ప్లేయర్ స్కోర్',
+    viewing_other_note: 'మీరు {name} ప్రొఫైల్ చూస్తున్నారు.', score_unit: 'పాయింట్స్',
+    stat_games: 'పూర్తయిన గేమ్‌లు', stat_fans: 'అభిమానులు',
+    stat_completion: 'పూర్తి %', stat_reach: 'యూనిక్ ప్లేయర్లు',
+    redeem_text: '100 గేమ్‌లు = <strong style="color:white;">1.0×</strong> base.<br>మూడు tasks = <strong style="color:white;">1.5×</strong> MAX',
+    climb_title: 'మీ task ప్రోగ్రెస్',
+    cta_watch_video: 'వీడియో చూడండి · ఎలా గెలవాలి',
+    score_footer: 'స్కోర్ ప్రతి 4 గంటలకి అప్‌డేట్ · కష్టపడితే రివార్డ్',
+    howto_hero_title: 'ఎలా గెలవాలి?',
+    howto_hero_sub: 'ప్రో ప్లేయర్ బ్యాడ్జ్ ఎలా సంపాదించాలి',
+    video_overlay_title: 'ప్రో ప్లేయర్ బ్యాడ్జ్<br>ఫుల్ గైడ్',
+    video_title: 'ప్రో ప్లేయర్ బ్యాడ్జ్ · ఫుల్ గైడ్',
+    video_sub: '▶ 2 నిమి · స్టెప్-బై-స్టెప్',
+    video_lang_line: 'అన్నీ · 2 నిమి',
+    ladder_title: 'టైర్ లాడర్', ladder_sub: 'మీరు ఎక్కడ ఉన్నారు?',
+    ladder_start: 'మొదలు',
+    ladder_aspiring_short: 'ఆస్పిరింగ్<br>ప్రో ప్లేయర్', ladder_pro_short: 'ప్రో ప్లేయర్',
+    ladder_aspiring_req2: '<strong>25–99</strong> గేమ్‌లు',
+    ladder_pro_req2: '<strong>100+</strong> గేమ్‌లు · 1.0–1.5× రేట్',
+    base_section_title: 'Step 1 · Base',
+    base_task_title: '100 గేమ్‌లు పూర్తి',
+    base_task_sub: 'Pro Player unlock · base <strong>1.0×</strong>',
+    tasks_section_title: 'Step 2 · 3 Bonus Tasks',
+    tasks_section_sub: 'మూడు = MAX 1.5×',
+    task1_title: 'Fans Banao',
+    task1_target: '<strong>15</strong> fans',
+    task2_title: 'Reach Badao',
+    task2_target: '<strong>50</strong> players',
+    task3_title: 'Pura Khelo',
+    task3_target: '<strong>50%+</strong> complete',
+    ladder_rate_title: 'మీ reward',
+    max_rule_title: 'Pro Player <strong>లేదా</strong> Badge Upgrade',
+    max_rule_sub: 'ఏ rate ఎక్కువో అది మీకు లభిస్తుంది',
+    rate_tier_base: 'Base only',
+    rate_tier_1: '1 task done',
+    rate_tier_2: '2 tasks done',
+    rate_tier_3: '<strong>All 3</strong> · MAX',
+    steps_title: '5 స్టెప్స్ · బ్యాడ్జ్ వరకు',
+    step1_title: 'గేమ్ ఆడండి',
+    step1_desc: '',
+    step2_title: 'పూర్తి చేయండి',
+    step2_desc: '',
+    step3_title: 'అభిమానుల్ని తయారు చేయండి',
+    step3_desc: '',
+    step4_title: '100 గేమ్‌లు = ప్రో ప్లేయర్ ఎంట్రీ',
+    step4_desc: '',
+    step5_title: '1.10× రిడీమ్ రేట్',
+    step5_desc: '',
+    points_section_title: 'పాయింట్లు ఎలా వస్తాయి',
+    formula_game: 'ప్రతి <strong>పూర్తి గేమ్</strong>',
+    formula_fans: 'ప్రతి <strong>5 అభిమానులు</strong> (అతిపెద్ద బోనస్!)',
+    formula_comp_30: 'పూర్తి రేట్ <strong>30–50%</strong>',
+    formula_comp_50: 'పూర్తి రేట్ <strong>50%+</strong>',
+    formula_reach: 'ప్రతి <strong>5 కొత్త ప్లేయర్లు</strong>',
+    comp_section_title: 'పూర్తి రేట్ అర్థం చేసుకోండి',
+    comp_what: 'ఇది ఏంటి?',
+    comp_what_desc: 'మీరు ప్రారంభించిన గేమ్‌లు vs. పూర్తి చేసిన గేమ్‌ల శాతం. మధ్యలో వదిలేస్తే రేట్ తగ్గుతుంది.',
+    comp_target: 'లక్ష్యం',
+    comp_target_desc: '<strong>50%+</strong> = +20 బోనస్ · <strong>30–50%</strong> = +10 బోనస్ · <strong>30% కంటే తక్కువ</strong> = బోనస్ లేదు.',
+    comp_tip: 'చిట్కా',
+    comp_tip_desc: 'మీకు పూర్తిగా ఆడే సమయం ఉన్న కాల్‌లలో మాత్రమే గేమ్ స్టార్ట్ చేయండి. తక్కువ గేమ్‌లు — కానీ పూర్తిగా — త్వరగా రేట్ పెంచుతుంది.',
+    rate_section_title: 'రిడీమ్ రేట్ — ఎలా పని చేస్తుంది',
+    rate_rule: '<strong>ప్రో ప్లేయర్ 1.10× <span style="color:var(--gold);">లేదా</span> బ్యాడ్జ్ అప్‌గ్రేడ్ — ఏది ఎక్కువో</strong>',
+    example_1_label: 'ఉదాహరణ 1',
+    example_badge_upgrade: 'బ్యాడ్జ్ అప్‌గ్రేడ్', example_pro_player: 'ప్రో ప్లేయర్', example_you_get: 'మీకు వస్తుంది',
+    example_1_note: '',
+    example_2_label: 'ఉదాహరణ 2',
+    example_badge_upgrade2: 'బ్యాడ్జ్ అప్‌గ్రేడ్', example_pro_player2: 'ప్రో ప్లేయర్', example_you_get2: 'మీకు వస్తుంది',
+    example_2_note: '',
+    reward_badge_text: '⭐ ప్రో ప్లేయర్',
+    reward_title: 'మీకు ఏం వస్తుంది',
+    reward_item_1: '<strong>Exclusive Pro Badge</strong>',
+    reward_item_2: '<strong>New Game</strong> Exclusive Access',
+    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_4: 'కొత్త ప్లేయర్లు',
+    reward_item_5: 'అభిమానుల నెట్‌వర్క్',
+    tips_title: '💡 టాప్ ప్లేయర్లు ఏం వేరుగా చేస్తారు',
+    tip_1: '<strong>మొదటి 30 సెకన్లు</strong> — పేరు + ఎనర్జీ',
+    tip_2: '<strong>ఎక్కువ వినండి, తక్కువ మాట్లాడండి</strong>',
+    tip_3: '<strong>చిన్న, నిజమైన ప్రశంసలు</strong>',
+    tip_4: '<strong>చివరి 30 సెకన్లు</strong> — హై నోట్‌తో ముగించండి',
+    tip_5: '<strong>రిపీట్ యూజర్‌ను గుర్తుంచుకోండి</strong>',
+    tip_6: '<strong>నిశ్శబ్దంలో ప్రశ్న అడగండి</strong>',
+    cta_view_leaderboard: 'లీడర్‌బోర్డ్ చూడండి',
+    howto_footer: 'ఆడండి · గెలవండి · రివార్డ్ పొందండి 💪',
+  },
+  // Tamil (AI-drafted — needs native review)
+  ta: {
+    nav_leaderboard: 'லீடர்போர்ட்', nav_score: 'என் ஸ்கோர்', nav_howto: 'எப்படி வெல்வது',
+    gate_title: 'ப்ரோ பிளேயர் பேட்ஜ்',
+    gate_sub: 'உங்கள் FRND ஆப் மொபைல் எண்ணை உள்ளிடுங்கள் — லீடர்போர்ட் உங்கள் மொழியில் திறக்கும்.',
+    gate_submit: 'லீடர்போர்ட் திற', gate_or: 'அல்லது',
+    gate_picker_label: 'அல்லது நேரடியாக மொழியைத் தேர்வுசெய்க:',
+    gate_footer: 'உங்கள் மொபைல் எண் மொழியைக் கண்டறிய மட்டுமே பயன்படுத்தப்படுகிறது.',
+    gate_err_invalid: 'சரியான 10-இலக்க மொபைல் எண் உள்ளிடவும்',
+    hero_title: 'ப்ரோ பிளேயர் பேட்ஜ்', hero_sub: 'டாப் 10 · இந்த வாரம்',
+    search_placeholder: 'பெயர் அல்லது மொபைல் தேடு…',
+    top10_count_label: '<strong>டாப் 10</strong> ப்ரோ பிளேயர்கள்',
+    last_updated_label: 'கடைசியாக புதுப்பிக்கப்பட்டது:', next_label: 'அடுத்தது:',
+    rest_title: 'மீதி டாப் 10',
+    empty_title: 'இந்த பிளேயர் டாப் 10-இல் இல்லை',
+    empty_text: 'டாப் 10 ப்ரோ பிளேயர்கள் மட்டுமே இங்கு தெரிவார்கள்.<br><strong style="color:white;">என் ஸ்கோர்</strong> டேப்-இல் உங்கள் ஸ்கோரைப் பாருங்கள்.',
+    empty_cta: 'எப்படி வெல்வது என்று பாருங்கள்',
+    rules_cta_title: 'எப்படி வெல்வது?', rules_cta_sub: '2 நிமி வீடியோ · விதிகள் + குறிப்புகள்',
+    leaderboard_footer: 'டாப் 10 ப்ரோ பிளேயர்கள் · ஒவ்வொரு 4 மணிநேரம் புதுப்பிக்கப்படும்<br>தகுதி: 100+ கேம்கள் முடிக்க (டெமோ: 10+)',
+    your_tier_title: 'உங்கள் டையர்', your_tier_title_other: '{name} டையர்',
+    score_label: 'உங்கள் ப்ரோ பிளேயர் ஸ்கோர்', score_label_other: '{name} ப்ரோ பிளேயர் ஸ்கோர்',
+    viewing_other_note: 'நீங்கள் {name} சுயவிவரத்தைப் பார்க்கிறீர்கள்.', score_unit: 'புள்ளிகள்',
+    stat_games: 'முடிந்த கேம்கள்', stat_fans: 'ரசிகர்கள்',
+    stat_completion: 'நிறைவு %', stat_reach: 'தனித்துவ பிளேயர்கள்',
+    redeem_text: '100 கேம்கள் = <strong style="color:white;">1.0×</strong> base.<br>மூன்று tasks = <strong style="color:white;">1.5×</strong> MAX',
+    climb_title: 'உங்கள் task progress',
+    cta_watch_video: 'வீடியோ பார் · எப்படி வெல்வது',
+    score_footer: 'ஸ்கோர் ஒவ்வொரு 4 மணிநேரம் புதுப்பிக்கப்படும் · உழைப்புக்கு பரிசு',
+    howto_hero_title: 'எப்படி வெல்வது?',
+    howto_hero_sub: 'ப்ரோ பிளேயர் பேட்ஜ் எப்படி சம்பாதிப்பது',
+    video_overlay_title: 'ப்ரோ பிளேயர் பேட்ஜ்<br>முழு வழிகாட்டி',
+    video_title: 'ப்ரோ பிளேயர் பேட்ஜ் · முழு வழிகாட்டி',
+    video_sub: '▶ 2 நிமி · படிப்படியாக',
+    video_lang_line: 'அனைத்தும் · 2 நிமி',
+    ladder_title: 'டையர் ஏணி', ladder_sub: 'நீங்கள் எங்கே?',
+    ladder_start: 'தொடக்கம்',
+    ladder_aspiring_short: 'ஆஸ்பயரிங்<br>ப்ரோ பிளேயர்', ladder_pro_short: 'ப்ரோ பிளேயர்',
+    ladder_aspiring_req2: '<strong>25–99</strong> கேம்கள்',
+    ladder_pro_req2: '<strong>100+</strong> கேம்கள் · 1.0–1.5× ரேட்',
+    base_section_title: 'Step 1 · Base',
+    base_task_title: '100 கேம்கள் முடி',
+    base_task_sub: 'Pro Player unlock · base <strong>1.0×</strong>',
+    tasks_section_title: 'Step 2 · 3 Bonus Tasks',
+    tasks_section_sub: 'மூன்று = MAX 1.5×',
+    task1_title: 'Fans Banao',
+    task1_target: '<strong>15</strong> fans',
+    task2_title: 'Reach Badao',
+    task2_target: '<strong>50</strong> players',
+    task3_title: 'Pura Khelo',
+    task3_target: '<strong>50%+</strong> complete',
+    ladder_rate_title: 'உங்கள் reward',
+    max_rule_title: 'Pro Player <strong>அல்லது</strong> Badge Upgrade',
+    max_rule_sub: 'எந்த rate அதிகமோ அதுவே உங்களுக்கு',
+    rate_tier_base: 'Base only',
+    rate_tier_1: '1 task done',
+    rate_tier_2: '2 tasks done',
+    rate_tier_3: '<strong>All 3</strong> · MAX',
+    steps_title: '5 படிகள் · பேட்ஜ் வரை',
+    step1_title: 'கேம் விளையாடு',
+    step1_desc: '',
+    step2_title: 'முடிக்க',
+    step2_desc: '',
+    step3_title: 'ரசிகர்களை உருவாக்குங்கள்',
+    step3_desc: '',
+    step4_title: '100 கேம்கள் = ப்ரோ பிளேயர் நுழைவு',
+    step4_desc: '',
+    step5_title: '1.10× ரிடீம் ரேட்',
+    step5_desc: '',
+    points_section_title: 'புள்ளிகள் எப்படிக் கிடைக்கும்',
+    formula_game: 'ஒவ்வொரு <strong>முழு கேம்</strong>',
+    formula_fans: 'ஒவ்வொரு <strong>5 ரசிகர்கள்</strong> (மிகப்பெரிய போனஸ்!)',
+    formula_comp_30: 'நிறைவு ரேட் <strong>30–50%</strong>',
+    formula_comp_50: 'நிறைவு ரேட் <strong>50%+</strong>',
+    formula_reach: 'ஒவ்வொரு <strong>5 புதிய பிளேயர்கள்</strong>',
+    comp_section_title: 'நிறைவு ரேட்டைப் புரிந்துகொள்ள',
+    comp_what: 'என்னது?',
+    comp_what_desc: 'நீங்கள் தொடங்கிய கேம்கள் vs. முடித்த கேம்களின் சதவீதம். நடுவில் விட்டால் ரேட் குறையும்.',
+    comp_target: 'இலக்கு',
+    comp_target_desc: '<strong>50%+</strong> = +20 போனஸ் · <strong>30–50%</strong> = +10 போனஸ் · <strong>30%-க்கும் குறைவு</strong> = போனஸ் இல்லை.',
+    comp_tip: 'குறிப்பு',
+    comp_tip_desc: 'நீங்கள் முழுமையாக விளையாட நேரம் உள்ள அழைப்புகளில் மட்டுமே கேம் தொடங்குங்கள். குறைவான ஆனால் முழு கேம்கள் வேகமாக ரேட்டை உயர்த்தும்.',
+    rate_section_title: 'ரிடீம் ரேட் — எப்படி வேலை செய்கிறது',
+    rate_rule: '<strong>ப்ரோ பிளேயர் 1.10× <span style="color:var(--gold);">அல்லது</span> பேட்ஜ் அப்கிரேட் — எது அதிகமோ</strong>',
+    example_1_label: 'எடுத்துக்காட்டு 1',
+    example_badge_upgrade: 'பேட்ஜ் அப்கிரேட்', example_pro_player: 'ப்ரோ பிளேயர்', example_you_get: 'உங்களுக்கு',
+    example_1_note: '',
+    example_2_label: 'எடுத்துக்காட்டு 2',
+    example_badge_upgrade2: 'பேட்ஜ் அப்கிரேட்', example_pro_player2: 'ப்ரோ பிளேயர்', example_you_get2: 'உங்களுக்கு',
+    example_2_note: '',
+    reward_badge_text: '⭐ ப்ரோ பிளேயர்',
+    reward_title: 'என்ன கிடைக்கும்',
+    reward_item_1: '<strong>Exclusive Pro Badge</strong>',
+    reward_item_2: '<strong>New Game</strong> Exclusive Access',
+    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_4: 'புதிய பிளேயர்கள்',
+    reward_item_5: 'ரசிகர்களின் வலையமைப்பு',
+    tips_title: '💡 டாப் பிளேயர்கள் எப்படி வேறுபடுகிறார்கள்',
+    tip_1: '<strong>முதல் 30 விநாடிகள்</strong> — பெயர் + எனர்ஜி',
+    tip_2: '<strong>அதிகம் கேளுங்கள், குறைவாகப் பேசுங்கள்</strong>',
+    tip_3: '<strong>சிறிய, உண்மையான பாராட்டுகள்</strong>',
+    tip_4: '<strong>கடைசி 30 விநாடிகள்</strong> — உயர்வாக முடியுங்கள்',
+    tip_5: '<strong>திரும்ப வருபவர்களை நினைவில் கொள்க</strong>',
+    tip_6: '<strong>மௌனத்தில் கேள்வி கேளுங்கள்</strong>',
+    cta_view_leaderboard: 'லீடர்போர்ட் பார்',
+    howto_footer: 'விளையாடு · வெல் · பரிசு பெறு 💪',
+  },
+  // Malayalam (AI-drafted — needs native review)
+  ml: {
+    nav_leaderboard: 'ലീഡർബോർഡ്', nav_score: 'എന്റെ സ്കോർ', nav_howto: 'എങ്ങനെ ജയിക്കാം',
+    gate_title: 'പ്രോ പ്ലെയർ ബാഡ്ജ്',
+    gate_sub: 'നിങ്ങളുടെ FRND ആപ്പ് മൊബൈൽ നമ്പർ നൽകുക — ലീഡർബോർഡ് നിങ്ങളുടെ ഭാഷയിൽ തുറക്കും.',
+    gate_submit: 'ലീഡർബോർഡ് തുറക്കുക', gate_or: 'അല്ലെങ്കിൽ',
+    gate_picker_label: 'അല്ലെങ്കിൽ നേരിട്ട് ഭാഷ തിരഞ്ഞെടുക്കുക:',
+    gate_footer: 'നിങ്ങളുടെ മൊബൈൽ നമ്പർ ഭാഷ കണ്ടെത്താൻ മാത്രമേ ഉപയോഗിക്കൂ.',
+    gate_err_invalid: 'ശരിയായ 10-അക്ക മൊബൈൽ നമ്പർ നൽകുക',
+    hero_title: 'പ്രോ പ്ലെയർ ബാഡ്ജ്', hero_sub: 'ടോപ്പ് 10 · ഈ ആഴ്ച',
+    search_placeholder: 'പേര് അല്ലെങ്കിൽ മൊബൈൽ തിരയുക…',
+    top10_count_label: '<strong>ടോപ്പ് 10</strong> പ്രോ പ്ലെയർമാർ',
+    last_updated_label: 'അവസാനം പുതുക്കിയത്:', next_label: 'അടുത്തത്:',
+    rest_title: 'ബാക്കിയുള്ള ടോപ്പ് 10',
+    empty_title: 'ഈ പ്ലെയർ ടോപ്പ് 10-ൽ ഇല്ല',
+    empty_text: 'ടോപ്പ് 10 പ്രോ പ്ലെയർമാർ മാത്രമേ ഇവിടെ കാണൂ.<br><strong style="color:white;">എന്റെ സ്കോർ</strong> ടാബിൽ നിങ്ങളുടെ സ്കോർ കാണുക.',
+    empty_cta: 'എങ്ങനെ ജയിക്കണമെന്ന് കാണുക',
+    rules_cta_title: 'എങ്ങനെ ജയിക്കാം?', rules_cta_sub: '2 മിനിറ്റ് വീഡിയോ · നിയമങ്ങൾ + ടിപ്സ്',
+    leaderboard_footer: 'ടോപ്പ് 10 പ്രോ പ്ലെയർമാർ · ഓരോ 4 മണിക്കൂറിലും പുതുക്കും<br>യോഗ്യത: 100+ ഗെയിമുകൾ പൂർത്തിയാക്കണം (ഡെമോ: 10+)',
+    your_tier_title: 'നിങ്ങളുടെ ടയർ', your_tier_title_other: '{name} ടയർ',
+    score_label: 'നിങ്ങളുടെ പ്രോ പ്ലെയർ സ്കോർ', score_label_other: '{name} പ്രോ പ്ലെയർ സ്കോർ',
+    viewing_other_note: 'നിങ്ങൾ {name} പ്രൊഫൈൽ കാണുകയാണ്.', score_unit: 'പോയിന്റ്സ്',
+    stat_games: 'പൂർത്തിയായ ഗെയിമുകൾ', stat_fans: 'ആരാധകർ',
+    stat_completion: 'പൂർത്തീകരണം %', stat_reach: 'വ്യത്യസ്ത പ്ലെയർമാർ',
+    redeem_text: '100 ഗെയിമുകൾ = <strong style="color:white;">1.0×</strong> base.<br>മൂന്നു tasks = <strong style="color:white;">1.5×</strong> MAX',
+    climb_title: 'നിങ്ങളുടെ task progress',
+    cta_watch_video: 'വീഡിയോ കാണുക · എങ്ങനെ ജയിക്കാം',
+    score_footer: 'സ്കോർ ഓരോ 4 മണിക്കൂറിലും അപ്ഡേറ്റ് · കഷ്ടപ്പാടിന് സമ്മാനം',
+    howto_hero_title: 'എങ്ങനെ ജയിക്കാം?',
+    howto_hero_sub: 'പ്രോ പ്ലെയർ ബാഡ്ജ് എങ്ങനെ നേടാം',
+    video_overlay_title: 'പ്രോ പ്ലെയർ ബാഡ്ജ്<br>പൂർണ്ണ ഗൈഡ്',
+    video_title: 'പ്രോ പ്ലെയർ ബാഡ്ജ് · പൂർണ്ണ ഗൈഡ്',
+    video_sub: '▶ 2 മിനിറ്റ് · സ്റ്റെപ്പ്-ബൈ-സ്റ്റെപ്പ്',
+    video_lang_line: 'എല്ലാം · 2 മിനിറ്റ്',
+    ladder_title: 'ടയർ ലാഡർ', ladder_sub: 'നിങ്ങൾ എവിടെ?',
+    ladder_start: 'തുടക്കം',
+    ladder_aspiring_short: 'ആസ്പിറിങ്<br>പ്രോ പ്ലെയർ', ladder_pro_short: 'പ്രോ പ്ലെയർ',
+    ladder_aspiring_req2: '<strong>25–99</strong> ഗെയിമുകൾ',
+    ladder_pro_req2: '<strong>100+</strong> ഗെയിമുകൾ · 1.0–1.5× റേറ്റ്',
+    base_section_title: 'Step 1 · Base',
+    base_task_title: '100 ഗെയിമുകൾ പൂർത്തി',
+    base_task_sub: 'Pro Player unlock · base <strong>1.0×</strong>',
+    tasks_section_title: 'Step 2 · 3 Bonus Tasks',
+    tasks_section_sub: 'മൂന്നു = MAX 1.5×',
+    task1_title: 'Fans Banao',
+    task1_target: '<strong>15</strong> fans',
+    task2_title: 'Reach Badao',
+    task2_target: '<strong>50</strong> players',
+    task3_title: 'Pura Khelo',
+    task3_target: '<strong>50%+</strong> complete',
+    ladder_rate_title: 'നിങ്ങളുടെ reward',
+    max_rule_title: 'Pro Player <strong>അല്ലെങ്കിൽ</strong> Badge Upgrade',
+    max_rule_sub: 'ഏത് rate കൂടുതലോ അത് നിങ്ങൾക്ക് കിട്ടും',
+    rate_tier_base: 'Base only',
+    rate_tier_1: '1 task done',
+    rate_tier_2: '2 tasks done',
+    rate_tier_3: '<strong>All 3</strong> · MAX',
+    steps_title: '5 പടികൾ · ബാഡ്ജ് വരെ',
+    step1_title: 'ഗെയിം കളിക്കുക',
+    step1_desc: '',
+    step2_title: 'പൂർത്തിയാക്കുക',
+    step2_desc: '',
+    step3_title: 'ആരാധകരെ ഉണ്ടാക്കുക',
+    step3_desc: '',
+    step4_title: '100 ഗെയിമുകൾ = പ്രോ പ്ലെയർ പ്രവേശനം',
+    step4_desc: '',
+    step5_title: '1.10× റിഡീം റേറ്റ്',
+    step5_desc: '',
+    points_section_title: 'പോയിന്റുകൾ എങ്ങനെ ലഭിക്കും',
+    formula_game: 'ഓരോ <strong>പൂർണ്ണ ഗെയിം</strong>',
+    formula_fans: 'ഓരോ <strong>5 ആരാധകർ</strong> (ഏറ്റവും വലിയ ബോണസ്!)',
+    formula_comp_30: 'പൂർത്തീകരണ റേറ്റ് <strong>30–50%</strong>',
+    formula_comp_50: 'പൂർത്തീകരണ റേറ്റ് <strong>50%+</strong>',
+    formula_reach: 'ഓരോ <strong>5 പുതിയ പ്ലെയർമാർ</strong>',
+    comp_section_title: 'പൂർത്തീകരണ റേറ്റ് മനസിലാക്കുക',
+    comp_what: 'ഇത് എന്താണ്?',
+    comp_what_desc: 'നിങ്ങൾ തുടങ്ങിയ ഗെയിമുകളും പൂർത്തിയാക്കിയ ഗെയിമുകളും തമ്മിലുള്ള ശതമാനം. നടുവിൽ വിട്ടാൽ റേറ്റ് കുറയും.',
+    comp_target: 'ലക്ഷ്യം',
+    comp_target_desc: '<strong>50%+</strong> = +20 ബോണസ് · <strong>30–50%</strong> = +10 ബോണസ് · <strong>30%-ൽ താഴെ</strong> = ബോണസ് ഇല്ല.',
+    comp_tip: 'ടിപ്പ്',
+    comp_tip_desc: 'പൂർണ്ണമായി കളിക്കാൻ സമയമുള്ള കാളുകളിൽ മാത്രം ഗെയിം തുടങ്ങുക. കുറവ് ഗെയിമുകൾ — എന്നാൽ പൂർണ്ണം — റേറ്റ് വേഗത്തിൽ ഉയർത്തും.',
+    rate_section_title: 'റിഡീം റേറ്റ് — എങ്ങനെ പ്രവർത്തിക്കും',
+    rate_rule: '<strong>പ്രോ പ്ലെയർ 1.10× <span style="color:var(--gold);">അല്ലെങ്കിൽ</span> ബാഡ്ജ് അപ്ഗ്രേഡ് — കൂടുതലുള്ളത്</strong>',
+    example_1_label: 'ഉദാഹരണം 1',
+    example_badge_upgrade: 'ബാഡ്ജ് അപ്ഗ്രേഡ്', example_pro_player: 'പ്രോ പ്ലെയർ', example_you_get: 'നിങ്ങൾക്ക്',
+    example_1_note: '',
+    example_2_label: 'ഉദാഹരണം 2',
+    example_badge_upgrade2: 'ബാഡ്ജ് അപ്ഗ്രേഡ്', example_pro_player2: 'പ്രോ പ്ലെയർ', example_you_get2: 'നിങ്ങൾക്ക്',
+    example_2_note: '',
+    reward_badge_text: '⭐ പ്രോ പ്ലെയർ',
+    reward_title: 'നിങ്ങൾക്ക് എന്ത് ലഭിക്കും',
+    reward_item_1: '<strong>Exclusive Pro Badge</strong>',
+    reward_item_2: '<strong>New Game</strong> Exclusive Access',
+    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_4: 'പുതിയ പ്ലെയർമാർ',
+    reward_item_5: 'ആരാധകരുടെ ശൃംഖല',
+    tips_title: '💡 ടോപ്പ് പ്ലെയർമാർ എങ്ങനെ വ്യത്യസ്തരാകുന്നു',
+    tip_1: '<strong>ആദ്യ 30 സെക്കൻഡുകൾ</strong> — പേര് + ഊർജ്ജം',
+    tip_2: '<strong>കൂടുതൽ കേൾക്കുക, കുറവ് സംസാരിക്കുക</strong>',
+    tip_3: '<strong>ചെറുതും യഥാർത്ഥവുമായ പ്രശംസകൾ</strong>',
+    tip_4: '<strong>അവസാന 30 സെക്കൻഡുകൾ</strong> — ഉയർന്ന നോട്ടിൽ അവസാനിപ്പിക്കുക',
+    tip_5: '<strong>തിരിച്ചുവരുന്ന ഉപയോക്താവിനെ ഓർമ്മിക്കുക</strong>',
+    tip_6: '<strong>മൗനത്തിൽ ചോദ്യം ചോദിക്കുക</strong>',
+    cta_view_leaderboard: 'ലീഡർബോർഡ് കാണുക',
+    howto_footer: 'കളിക്കുക · ജയിക്കുക · സമ്മാനം നേടുക 💪',
+  },
+  // Kannada (AI-drafted — needs native review)
+  kn: {
+    nav_leaderboard: 'ಲೀಡರ್‌ಬೋರ್ಡ್', nav_score: 'ನನ್ನ ಸ್ಕೋರ್', nav_howto: 'ಹೇಗೆ ಗೆಲ್ಲುವುದು',
+    gate_title: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್',
+    gate_sub: 'ನಿಮ್ಮ FRND ಆಪ್ ಮೊಬೈಲ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ — ಲೀಡರ್‌ಬೋರ್ಡ್ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ತೆರೆಯುತ್ತದೆ.',
+    gate_submit: 'ಲೀಡರ್‌ಬೋರ್ಡ್ ತೆರೆ', gate_or: 'ಅಥವಾ',
+    gate_picker_label: 'ಅಥವಾ ನೇರವಾಗಿ ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ:',
+    gate_footer: 'ನಿಮ್ಮ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಕೇವಲ ಭಾಷೆ ಗುರುತಿಸಲು ಬಳಸಲಾಗುತ್ತದೆ.',
+    gate_err_invalid: 'ಸರಿಯಾದ 10-ಅಂಕಿಯ ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ',
+    hero_title: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್', hero_sub: 'ಟಾಪ್ 10 · ಈ ವಾರ',
+    search_placeholder: 'ಹೆಸರು ಅಥವಾ ಮೊಬೈಲ್ ಹುಡುಕಿ…',
+    top10_count_label: '<strong>ಟಾಪ್ 10</strong> ಪ್ರೋ ಪ್ಲೇಯರ್‌ಗಳು',
+    last_updated_label: 'ಕೊನೆಯ ಅಪ್‌ಡೇಟ್:', next_label: 'ಮುಂದಿನದು:',
+    rest_title: 'ಉಳಿದ ಟಾಪ್ 10',
+    empty_title: 'ಈ ಪ್ಲೇಯರ್ ಟಾಪ್ 10ರಲ್ಲಿ ಇಲ್ಲ',
+    empty_text: 'ಕೇವಲ ಟಾಪ್ 10 ಪ್ರೋ ಪ್ಲೇಯರ್‌ಗಳು ಮಾತ್ರ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತಾರೆ.<br><strong style="color:white;">ನನ್ನ ಸ್ಕೋರ್</strong> ಟ್ಯಾಬ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಸ್ಕೋರ್ ನೋಡಿ.',
+    empty_cta: 'ಹೇಗೆ ಗೆಲ್ಲುವುದು ಎಂದು ನೋಡಿ',
+    rules_cta_title: 'ಹೇಗೆ ಗೆಲ್ಲುವುದು?', rules_cta_sub: '2 ನಿಮಿಷ ವೀಡಿಯೊ · ನಿಯಮಗಳು + ಸಲಹೆಗಳು',
+    leaderboard_footer: 'ಟಾಪ್ 10 ಪ್ರೋ ಪ್ಲೇಯರ್‌ಗಳು · ಪ್ರತಿ 4 ಗಂಟೆಗೆ ಅಪ್‌ಡೇಟ್<br>ಅರ್ಹತೆ: 100+ ಆಟಗಳು ಪೂರ್ಣಗೊಳಿಸಿ (ಡೆಮೋ: 10+)',
+    your_tier_title: 'ನಿಮ್ಮ ಟಯರ್', your_tier_title_other: '{name} ಟಯರ್',
+    score_label: 'ನಿಮ್ಮ ಪ್ರೋ ಪ್ಲೇಯರ್ ಸ್ಕೋರ್', score_label_other: '{name} ಪ್ರೋ ಪ್ಲೇಯರ್ ಸ್ಕೋರ್',
+    viewing_other_note: 'ನೀವು {name} ಪ್ರೊಫೈಲ್ ನೋಡುತ್ತಿದ್ದೀರಿ.', score_unit: 'ಪಾಯಿಂಟ್ಸ್',
+    stat_games: 'ಪೂರ್ಣಗೊಂಡ ಆಟಗಳು', stat_fans: 'ಅಭಿಮಾನಿಗಳು',
+    stat_completion: 'ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ %', stat_reach: 'ಅನನ್ಯ ಪ್ಲೇಯರ್‌ಗಳು',
+    redeem_text: '100 ಆಟಗಳು = <strong style="color:white;">1.0×</strong> base.<br>ಮೂರು tasks = <strong style="color:white;">1.5×</strong> MAX',
+    climb_title: 'ನಿಮ್ಮ task progress',
+    cta_watch_video: 'ವೀಡಿಯೊ ನೋಡಿ · ಹೇಗೆ ಗೆಲ್ಲುವುದು',
+    score_footer: 'ಸ್ಕೋರ್ ಪ್ರತಿ 4 ಗಂಟೆಗೆ ಅಪ್‌ಡೇಟ್ · ಕಷ್ಟಪಡುವ ಬಹುಮಾನ',
+    howto_hero_title: 'ಹೇಗೆ ಗೆಲ್ಲುವುದು?',
+    howto_hero_sub: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್ ಹೇಗೆ ಪಡೆಯುವುದು',
+    video_overlay_title: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್<br>ಪೂರ್ಣ ಮಾರ್ಗದರ್ಶಿ',
+    video_title: 'ಪ್ರೋ ಪ್ಲೇಯರ್ ಬ್ಯಾಡ್ಜ್ · ಪೂರ್ಣ ಮಾರ್ಗದರ್ಶಿ',
+    video_sub: '▶ 2 ನಿಮಿಷ · ಹಂತ-ಹಂತ',
+    video_lang_line: 'ಎಲ್ಲಾ · 2 ನಿಮಿಷ',
+    ladder_title: 'ಟಯರ್ ಲ್ಯಾಡರ್', ladder_sub: 'ನೀವು ಎಲ್ಲಿದ್ದೀರಿ?',
+    ladder_start: 'ಪ್ರಾರಂಭ',
+    ladder_aspiring_short: 'ಆಸ್ಪಿರಿಂಗ್<br>ಪ್ರೋ ಪ್ಲೇಯರ್', ladder_pro_short: 'ಪ್ರೋ ಪ್ಲೇಯರ್',
+    ladder_aspiring_req2: '<strong>25–99</strong> ಆಟಗಳು',
+    ladder_pro_req2: '<strong>100+</strong> ಆಟಗಳು · 1.0–1.5× ರೇಟ್',
+    base_section_title: 'Step 1 · Base',
+    base_task_title: '100 ಆಟಗಳು ಪೂರ್ಣ',
+    base_task_sub: 'Pro Player unlock · base <strong>1.0×</strong>',
+    tasks_section_title: 'Step 2 · 3 Bonus Tasks',
+    tasks_section_sub: 'ಮೂರು = MAX 1.5×',
+    task1_title: 'Fans Banao',
+    task1_target: '<strong>15</strong> fans',
+    task2_title: 'Reach Badao',
+    task2_target: '<strong>50</strong> players',
+    task3_title: 'Pura Khelo',
+    task3_target: '<strong>50%+</strong> complete',
+    ladder_rate_title: 'ನಿಮ್ಮ reward',
+    max_rule_title: 'Pro Player <strong>ಅಥವಾ</strong> Badge Upgrade',
+    max_rule_sub: 'ಯಾವ rate ಹೆಚ್ಚಿದೆಯೋ ಅದು ನಿಮಗೆ ಸಿಗುತ್ತದೆ',
+    rate_tier_base: 'Base only',
+    rate_tier_1: '1 task done',
+    rate_tier_2: '2 tasks done',
+    rate_tier_3: '<strong>All 3</strong> · MAX',
+    steps_title: '5 ಹಂತಗಳು · ಬ್ಯಾಡ್ಜ್ ತಲುಪಲು',
+    step1_title: 'ಆಟ ಆಡಿ',
+    step1_desc: '',
+    step2_title: 'ಪೂರ್ಣಗೊಳಿಸಿ',
+    step2_desc: '',
+    step3_title: 'ಅಭಿಮಾನಿಗಳನ್ನು ಮಾಡಿ',
+    step3_desc: '',
+    step4_title: '100 ಆಟಗಳು = ಪ್ರೋ ಪ್ಲೇಯರ್ ಪ್ರವೇಶ',
+    step4_desc: '',
+    step5_title: '1.10× ರಿಡೀಮ್ ರೇಟ್',
+    step5_desc: '',
+    points_section_title: 'ಪಾಯಿಂಟ್‌ಗಳು ಹೇಗೆ ಸಿಗುತ್ತವೆ',
+    formula_game: 'ಪ್ರತಿ <strong>ಪೂರ್ಣ ಆಟ</strong>',
+    formula_fans: 'ಪ್ರತಿ <strong>5 ಅಭಿಮಾನಿಗಳು</strong> (ಅತಿದೊಡ್ಡ ಬೋನಸ್!)',
+    formula_comp_30: 'ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ ರೇಟ್ <strong>30–50%</strong>',
+    formula_comp_50: 'ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ ರೇಟ್ <strong>50%+</strong>',
+    formula_reach: 'ಪ್ರತಿ <strong>5 ಹೊಸ ಪ್ಲೇಯರ್‌ಗಳು</strong>',
+    comp_section_title: 'ಪೂರ್ಣಗೊಳಿಸುವಿಕೆ ರೇಟ್ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಿ',
+    comp_what: 'ಇದು ಏನು?',
+    comp_what_desc: 'ನೀವು ಪ್ರಾರಂಭಿಸಿದ ಆಟಗಳು vs. ಪೂರ್ಣಗೊಳಿಸಿದ ಆಟಗಳ ಶೇಕಡಾವಾರು. ಮಧ್ಯದಲ್ಲಿ ಬಿಟ್ಟರೆ ರೇಟ್ ಕಡಿಮೆಯಾಗುತ್ತದೆ.',
+    comp_target: 'ಗುರಿ',
+    comp_target_desc: '<strong>50%+</strong> = +20 ಬೋನಸ್ · <strong>30–50%</strong> = +10 ಬೋನಸ್ · <strong>30%ಗಿಂತ ಕಡಿಮೆ</strong> = ಬೋನಸ್ ಇಲ್ಲ.',
+    comp_tip: 'ಸಲಹೆ',
+    comp_tip_desc: 'ನೀವು ಪೂರ್ಣವಾಗಿ ಆಡಲು ಸಮಯವಿರುವ ಕರೆಗಳಲ್ಲಿ ಮಾತ್ರ ಆಟ ಪ್ರಾರಂಭಿಸಿ. ಕಡಿಮೆ ಆದರೆ ಪೂರ್ಣ ಆಟಗಳು ರೇಟ್ ವೇಗವಾಗಿ ಹೆಚ್ಚಿಸುತ್ತವೆ.',
+    rate_section_title: 'ರಿಡೀಮ್ ರೇಟ್ — ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತದೆ',
+    rate_rule: '<strong>ಪ್ರೋ ಪ್ಲೇಯರ್ 1.10× <span style="color:var(--gold);">ಅಥವಾ</span> ಬ್ಯಾಡ್ಜ್ ಅಪ್‌ಗ್ರೇಡ್ — ಯಾವುದು ಹೆಚ್ಚಿದೆಯೋ</strong>',
+    example_1_label: 'ಉದಾಹರಣೆ 1',
+    example_badge_upgrade: 'ಬ್ಯಾಡ್ಜ್ ಅಪ್‌ಗ್ರೇಡ್', example_pro_player: 'ಪ್ರೋ ಪ್ಲೇಯರ್', example_you_get: 'ನಿಮಗೆ',
+    example_1_note: '',
+    example_2_label: 'ಉದಾಹರಣೆ 2',
+    example_badge_upgrade2: 'ಬ್ಯಾಡ್ಜ್ ಅಪ್‌ಗ್ರೇಡ್', example_pro_player2: 'ಪ್ರೋ ಪ್ಲೇಯರ್', example_you_get2: 'ನಿಮಗೆ',
+    example_2_note: '',
+    reward_badge_text: '⭐ ಪ್ರೋ ಪ್ಲೇಯರ್',
+    reward_title: 'ನಿಮಗೆ ಏನು ಸಿಗುತ್ತದೆ',
+    reward_item_1: '<strong>Exclusive Pro Badge</strong>',
+    reward_item_2: '<strong>New Game</strong> Exclusive Access',
+    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_4: 'ಹೊಸ ಪ್ಲೇಯರ್‌ಗಳು',
+    reward_item_5: 'ಅಭಿಮಾನಿಗಳ ಜಾಲ',
+    tips_title: '💡 ಟಾಪ್ ಪ್ಲೇಯರ್‌ಗಳು ಹೇಗೆ ವಿಭಿನ್ನ',
+    tip_1: '<strong>ಮೊದಲ 30 ಸೆಕೆಂಡ್‌ಗಳು</strong> — ಹೆಸರು + ಶಕ್ತಿ',
+    tip_2: '<strong>ಹೆಚ್ಚು ಆಲಿಸಿ, ಕಡಿಮೆ ಮಾತನಾಡಿ</strong>',
+    tip_3: '<strong>ಚಿಕ್ಕದಾದ, ಪ್ರಾಮಾಣಿಕ ಶ್ಲಾಘನೆ</strong>',
+    tip_4: '<strong>ಕೊನೆಯ 30 ಸೆಕೆಂಡ್‌ಗಳು</strong> — ಎತ್ತರದ ಮಟ್ಟದಲ್ಲಿ ಮುಗಿಸಿ',
+    tip_5: '<strong>ಮರಳಿ ಬರುವವರನ್ನು ನೆನಪಿಡಿ</strong>',
+    tip_6: '<strong>ಮೌನದಲ್ಲಿ ಪ್ರಶ್ನೆ ಕೇಳಿ</strong>',
+    cta_view_leaderboard: 'ಲೀಡರ್‌ಬೋರ್ಡ್ ನೋಡಿ',
+    howto_footer: 'ಆಡಿ · ಗೆಲ್ಲಿ · ಬಹುಮಾನ ಪಡೆಯಿರಿ 💪',
+  },
+};
+
+const SUPPORTED_LANGS = ['en', 'hi', 'te', 'ta', 'ml', 'kn'];
+const LANG_LABELS = {
+  en: { name: 'English', native: 'English' },
+  hi: { name: 'Hindi',   native: 'हिन्दी' },
+  te: { name: 'Telugu',  native: 'తెలుగు' },
+  ta: { name: 'Tamil',   native: 'தமிழ்' },
+  ml: { name: 'Malayalam', native: 'മലയാളം' },
+  kn: { name: 'Kannada', native: 'ಕನ್ನಡ' },
+};
+let CURRENT_LANG = 'hi'; // default = Hinglish
+
+function t(key) {
+  return (I18N[CURRENT_LANG] && I18N[CURRENT_LANG][key]) || I18N.en[key] || key;
+}
+
+function applyLanguage(lang) {
+  if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
+  CURRENT_LANG = lang;
+  try { localStorage.setItem('ppb_lang', lang); } catch (e) {}
+  // Walk DOM and swap text by data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    const val = (I18N[lang] && I18N[lang][k]) || I18N.en[k];
+    if (val !== undefined) el.innerHTML = val;
+  });
+  // Placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.getAttribute('data-i18n-placeholder');
+    const val = (I18N[lang] && I18N[lang][k]) || I18N.en[k];
+    if (val !== undefined) el.setAttribute('placeholder', val);
+  });
+  // Update lang switcher label (native script)
+  const sw = document.getElementById('lang-switcher-current');
+  if (sw) sw.textContent = (LANG_LABELS[lang] && LANG_LABELS[lang].native) || lang.toUpperCase();
+  // Mark active chip in the gate
+  document.querySelectorAll('.lang-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.lang === lang);
+  });
+  // Re-render dynamic elements that include language strings
+  if (typeof LEADERBOARD_DATA !== 'undefined' && typeof CURRENT_USER_RANK !== 'undefined') {
+    if (typeof renderYourRankChip === 'function') renderYourRankChip();
+    if (typeof renderList === 'function') renderList(LEADERBOARD_DATA);
+    const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK);
+    // Preserve the currently-viewed host on the My Score screen (might be someone else)
+    const viewHost = (typeof CURRENT_VIEW_HOST !== 'undefined' && CURRENT_VIEW_HOST) || me;
+    if (viewHost && typeof showMyScore === 'function') showMyScore(viewHost);
+    if (me && typeof renderTierProgress === 'function') renderTierProgress(me);
+  }
+}
+
+// Demo language mapping by mobile number last digit (placeholder for real app_language lookup)
+// In production, this maps to user's app_language from the FRND backend.
+function detectLanguageFromMobile(mobile) {
+  const m = String(mobile || '').replace(/\D/g, '');
+  if (m.length !== 10) return null;
+  const last = parseInt(m.slice(-1), 10);
+  if (last === 1 || last === 0) return 'hi';
+  if (last === 2) return 'te';
+  if (last === 3) return 'ta';
+  if (last === 4) return 'ml';
+  if (last === 5) return 'kn';
+  if (last === 6 || last === 7) return 'en';
+  return 'en'; // "Others" → English
+}
+
+// ====================================================================
+// EMBEDDED LEADERBOARD DATA
+// ====================================================================
+let LEADERBOARD_DATA = [];           // populated at runtime from Apps Script /exec?leaderboard=1
+let CURRENT_USER_RANK = -1;          // set after the gate-submit /exec?mobile=… lookup
+let CURRENT_USER_HOST_ID = null;     // canonical self-id, returned by the mobile lookup
+
+// ====================================================================
+// API CLIENT — talks to the Apps Script web app
+// ====================================================================
+const API_BASE = (window.PRO_PLAYER_API_URL || '').replace(/\/$/, '');
+if (!API_BASE) {
+  console.error('[PPB] Set window.PRO_PLAYER_API_URL to your Apps Script /exec URL before loading this script.');
+}
+
+async function apiFetch(params) {
+  const qs = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+  const r = await fetch(API_BASE + '/exec?' + qs, { method: 'GET' });
+  if (!r.ok) throw new Error('API HTTP ' + r.status);
+  const data = await r.json();
+  if (!data.ok) throw new Error(data.error || 'API error');
+  return data;
+}
+
+async function loadLeaderboard() {
+  try {
+    const data = await apiFetch({ leaderboard: 1 });
+    LEADERBOARD_DATA = data.hosts || [];
+    return LEADERBOARD_DATA;
+  } catch (e) {
+    console.error('[PPB] loadLeaderboard failed:', e);
+    LEADERBOARD_DATA = [];
+    return LEADERBOARD_DATA;
+  }
+}
+
+async function lookupSelfByMobile(mobile) {
+  try {
+    const data = await apiFetch({ mobile: mobile });
+    if (!data.found) return null;
+    CURRENT_USER_HOST_ID = data.host_id;
+    // Match the host_id against the loaded leaderboard to find rank.
+    const me = LEADERBOARD_DATA.find(h => String(h.host_id) === String(data.host_id));
+    CURRENT_USER_RANK = me ? me.rank : -1;
+    return me || null;
+  } catch (e) {
+    console.error('[PPB] lookupSelfByMobile failed:', e);
+    return null;
+  }
+}
+
+function rerenderAll() {
+  try {
+    const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK) || LEADERBOARD_DATA[0];
+    if (!me) return;
+    if (typeof showMyScore === 'function') showMyScore(me);
+    if (typeof renderTierProgress === 'function') renderTierProgress(me);
+    if (typeof renderList === 'function') renderList(LEADERBOARD_DATA);
+    if (typeof renderPodium === 'function') renderPodium();
+  } catch (e) { console.error('[PPB] rerenderAll error', e); }
+}
+
+// ====================================================================
+// HELPERS
+// ====================================================================
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function initialOf(name) {
+  const trimmed = String(name || '').trim();
+  if (!trimmed) return '?';
+  // skip emoji/symbol, return first letter
+  for (const ch of trimmed) {
+    if (/[A-Za-z]/.test(ch)) return ch.toUpperCase();
+  }
+  return trimmed[0];
+}
+
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg, #34d399, #10b981)',
+  'linear-gradient(135deg, #fb923c, #ea580c)',
+  'linear-gradient(135deg, #60a5fa, #2563eb)',
+  'linear-gradient(135deg, #f87171, #dc2626)',
+  'linear-gradient(135deg, #a78bfa, #7c3aed)',
+  'linear-gradient(135deg, #f472b6, #db2777)',
+  'linear-gradient(135deg, #2dd4bf, #0d9488)',
+  'linear-gradient(135deg, #facc15, #ca8a04)',
+  'linear-gradient(135deg, #c084fc, #8b5cf6)',
+  'linear-gradient(135deg, #fbbf24, #f59e0b)'
+];
+function avatarBg(idx) { return AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]; }
+
+function maskMobile(m) {
+  const s = String(m || '');
+  if (s.length < 4) return s;
+  return s.slice(0, 2) + '****' + s.slice(-2);
+}
+
+// ====================================================================
+// TIER CLASSIFIER — Pro Player vs Aspiring Pro
+// PRODUCTION: Pro = 100+ games, Aspiring = 25–99
+// DEMO: Pro = 50+ games, Aspiring = 10–49 (so demo data shows both tiers)
+// ====================================================================
+const TIER_THRESHOLDS = {
+  pro: 50,        // Pro Player threshold (demo: 50, production: 100)
+  aspiring: 10,   // Aspiring threshold (demo: 10, production: 25)
+};
+function getTier(host) {
+  const g = host.games_done || 0;
+  if (g >= TIER_THRESHOLDS.pro) return 'pro';
+  if (g >= TIER_THRESHOLDS.aspiring) return 'aspiring';
+  return 'rookie';
+}
+
+// ====================================================================
+// TASK COMPUTATION — new mechanic (May 2026, simplified)
+// Base: 100 games complete unlocks Pro Player + base 1.0× rate
+// 3 bonus tasks, stepped ladder (NOT linear +0.1×):
+//   0 tasks → 1.0×   1 task → 1.1×   2 tasks → 1.2×   3 tasks → 1.5× (MAX)
+// "All 3 unlocks a big jump" — incentivises completing the full set.
+//   T1 Fans Banao   : >=15 fans (fan = player with 5+ games; demo proxy = repeats >= 15)
+//   T2 Reach Badao  : >=50 unique players
+//   T3 Pura Khelo   : completion_pct >= 50%
+// ====================================================================
+const TASK_THRESHOLDS = {
+  base_games: 100,
+  fans: 15,
+  reach: 50,
+  completion: 50,
+};
+const RATE_LADDER = [1.0, 1.1, 1.2, 1.5]; // index = tasks_unlocked (0..3)
+function computeTaskStatus(host) {
+  const g = host.games_done || 0;
+  const fans = host.repeats || 0;
+  const reach = host.reach || 0;
+  const comp = host.completion_pct || 0;
+  const baseMet = g >= TASK_THRESHOLDS.base_games;
+  const tFans = fans >= TASK_THRESHOLDS.fans;
+  const tReach = reach >= TASK_THRESHOLDS.reach;
+  const tComp = comp >= TASK_THRESHOLDS.completion;
+  const unlocked = (tFans ? 1 : 0) + (tReach ? 1 : 0) + (tComp ? 1 : 0);
+  // Projected rate at production (regardless of base) — used for demo display
+  const projectedRate = RATE_LADDER[unlocked] || 1.0;
+  // Actual unlocked rate (requires base 100 games)
+  const actualRate = baseMet ? projectedRate : null;
+  return { baseMet, tFans, tReach, tComp, unlocked, projectedRate, actualRate, fans, reach, comp, games: g };
+}
+function tierChip(host, size) {
+  const t = getTier(host);
+  if (t === 'pro') {
+    return size === 'large'
+      ? '<span class="tier-badge"><span class="tier-icon">⭐</span>PRO PLAYER</span>'
+      : '<span class="pro-chip">⭐ PRO</span>';
+  }
+  if (t === 'aspiring') {
+    return size === 'large'
+      ? '<span class="tier-badge aspiring"><span class="tier-icon">🚀</span>ASPIRING PRO PLAYER</span>'
+      : '<span class="pro-chip aspiring">🚀 ASPIRING PRO PLAYER</span>';
+  }
+  return '';
+}
+function tierProgressFor(host) {
+  // Returns {pct, doneToNext, target, label}
+  const g = host.games_done || 0;
+  const proT = TIER_THRESHOLDS.pro;
+  const aspT = TIER_THRESHOLDS.aspiring;
+  if (g >= proT) {
+    return { pct: 100, label: 'Pro Player achieved 🎉', done: g, target: proT };
+  }
+  if (g >= aspT) {
+    const pct = Math.min(100, Math.round(((g - aspT) / (proT - aspT)) * 100));
+    return { pct: pct, label: 'Pro Player tak ' + (proT - g) + ' aur games', done: g, target: proT };
+  }
+  const pct = Math.min(100, Math.round((g / aspT) * 100));
+  return { pct: pct, label: 'Aspiring Pro tak ' + (aspT - g) + ' aur games', done: g, target: aspT };
+}
+
+// ====================================================================
+// RENDER LEADERBOARD
+// ====================================================================
+function renderPodium() {
+  const podium = document.getElementById('podium');
+  if (!podium) return; // Leaderboard removed (May 2026)
+  const top3 = LEADERBOARD_DATA.slice(0, 3);
+  if (top3.length < 3) {
+    podium.innerHTML = '<div style="grid-column:1/-1;text-align:center;font-size:12px;color:var(--text-tertiary);padding:16px;">Top 3 mein 3 hosts chahiye</div>';
+    return;
+  }
+  const [p1, p2, p3] = top3;
+  const card = (h, pos, klass, medal) => `
+    <div class="podium-card ${klass}" data-rank="${h.rank}">
+      <div class="podium-medal">${medal}</div>
+      <div class="podium-avatar" style="background:${avatarBg(h.rank - 1)};">${esc(initialOf(h.name))}</div>
+      <div class="podium-name">${esc(h.name)}</div>
+      <div class="podium-score">${h.score}</div>
+      <div class="podium-rate">${computeTaskStatus(h).projectedRate.toFixed(1)}×</div>
+    </div>`;
+  podium.innerHTML = card(p2, 2, 'second', '🥈') + card(p1, 1, 'first', '🥇') + card(p3, 3, 'third', '🥉');
+}
+
+function renderList(rows, opts) {
+  opts = opts || {};
+  const wrap = document.getElementById('ranked-list');
+  if (!wrap) return; // Leaderboard removed (May 2026)
+  const listCount = document.getElementById('list-count');
+  const emptyState = document.getElementById('empty-state');
+
+  // Top 10 means: podium (1-3) + list (4-10). When searching, show whatever matched.
+  const isSearch = !!opts.isSearch;
+  let rowsToShow;
+  if (isSearch) {
+    rowsToShow = rows;
+  } else {
+    // Default: ranks 4-10 in the list (podium owns 1-3)
+    rowsToShow = rows.filter(h => h.rank >= 4 && h.rank <= 10);
+  }
+
+  if (listCount) listCount.textContent = rowsToShow.length + ' players';
+
+  if (rowsToShow.length === 0) {
+    wrap.style.display = 'none';
+    emptyState.style.display = 'block';
+    return;
+  }
+  wrap.style.display = 'block';
+  emptyState.style.display = 'none';
+
+  const html = rowsToShow.map(h => {
+    const top3Class = h.rank <= 3 ? 'top3' : '';
+    return `
+      <div class="ranked-row ${top3Class}" data-rank="${h.rank}" data-name="${esc((h.name || '').toLowerCase())}" data-mobile="${esc(h.mobile)}">
+        <div class="rank-num">${h.rank <= 3 ? ['🥇','🥈','🥉'][h.rank-1] : '#' + h.rank}</div>
+        <div class="ranked-avatar" style="background:${avatarBg(h.rank - 1)};">${esc(initialOf(h.name))}</div>
+        <div class="ranked-info">
+          <div class="ranked-name">${esc(h.name)} ${tierChip(h, 'small')}</div>
+          <div class="ranked-meta">
+            <span>🎮 <strong>${h.games_done}</strong> games</span>
+            <span>✅ <strong>${h.completion_pct.toFixed(0)}%</strong></span>
+            <span>🔁 <strong>${h.repeats}</strong> repeat</span>
+            <span>👥 <strong>${h.reach}</strong> reach</span>
+          </div>
+        </div>
+        <div class="ranked-score">
+          <div class="ranked-score-num">${h.score}</div>
+          <div class="ranked-score-rate">${computeTaskStatus(h).projectedRate.toFixed(1)}×</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  wrap.innerHTML = html;
+
+  // Click to view that host's score
+  wrap.querySelectorAll('.ranked-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const rank = parseInt(row.dataset.rank, 10);
+      const host = LEADERBOARD_DATA.find(h => h.rank === rank);
+      if (host) { showMyScore(host); switchScreen('score'); }
+    });
+  });
+}
+
+// "Your rank" chip — CURRENT_USER_RANK is declared once at the top (let) and
+// is set by lookupSelfByMobile() after the user submits their mobile in the gate.
+function renderYourRankChip() {
+  const chip = document.getElementById('your-rank-chip');
+  if (!chip) return;
+  const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK);
+  if (!me) { chip.style.display = 'none'; return; }
+
+  const inTop10 = me.rank <= 10;
+  const tier = getTier(me);
+  const tierChipHtml = tierChip(me, 'small');
+
+  if (inTop10) {
+    chip.className = 'your-rank-chip in-top10';
+    chip.innerHTML = `
+      <div class="your-rank-chip-icon">#${me.rank}</div>
+      <div class="your-rank-chip-body">
+        <div class="your-rank-chip-headrow">
+          <div class="your-rank-chip-line1">Aap Top 10 mein ho! 🎉</div>
+          ${tierChipHtml}
+        </div>
+        <div class="your-rank-chip-line2"><strong>${computeTaskStatus(me).unlocked}/3 tasks</strong> · ${computeTaskStatus(me).projectedRate.toFixed(1)}× redeem rate</div>
+      </div>
+      <div class="your-rank-chip-arrow">›</div>
+    `;
+  } else {
+    const top10Cutoff = (LEADERBOARD_DATA[9] || {}).score || 0;
+    const ptsToTop10 = Math.max(0, top10Cutoff - me.score + 1);
+    chip.className = 'your-rank-chip';
+    let line2;
+    if (tier === 'pro') {
+      line2 = `Top 10 ke liye <strong>${ptsToTop10} pts aur</strong> chahiye`;
+    } else if (tier === 'aspiring') {
+      const gamesToPro = TIER_THRESHOLDS.pro - me.games_done;
+      line2 = `Pro Player tak <strong>${gamesToPro} games aur</strong> · Tap for details`;
+    } else {
+      const gamesToAsp = TIER_THRESHOLDS.aspiring - me.games_done;
+      line2 = `Aspiring tak <strong>${gamesToAsp} games aur</strong> · Tap for details`;
+    }
+    chip.innerHTML = `
+      <div class="your-rank-chip-icon">#${me.rank}</div>
+      <div class="your-rank-chip-body">
+        <div class="your-rank-chip-headrow">
+          <div class="your-rank-chip-line1">Aap #${me.rank} · ${me.score} pts</div>
+          ${tierChipHtml}
+        </div>
+        <div class="your-rank-chip-line2">${line2}</div>
+      </div>
+      <div class="your-rank-chip-arrow">›</div>
+    `;
+  }
+  chip.onclick = () => { showMyScore(me); switchScreen('score'); };
+}
+
+// ====================================================================
+// MY SCORE SCREEN
+// ====================================================================
+// Tracks the currently displayed host on the My Score screen (self or other)
+let CURRENT_VIEW_HOST = null;
+
+function showMyScore(host) {
+  CURRENT_VIEW_HOST = host;
+  const isSelf = (host.rank === CURRENT_USER_RANK);
+
+  // Score label + Tier title: "your" if self, "{name}'s" if other
+  const ownerLabel = document.querySelector('.score-label');
+  const tierTitle = document.querySelector('#tier-progress-card .info-card-title span[data-i18n]');
+  if (isSelf) {
+    if (ownerLabel) ownerLabel.innerHTML = t('score_label');
+    if (tierTitle) tierTitle.innerHTML = t('your_tier_title');
+  } else {
+    if (ownerLabel) ownerLabel.innerHTML = t('score_label_other').replace('{name}', esc(host.name || ''));
+    if (tierTitle) tierTitle.innerHTML = t('your_tier_title_other').replace('{name}', esc(host.name || ''));
+  }
+
+  // Climb-tips card is only relevant when viewing your own profile
+  const climbCard = document.getElementById('climb-tips')?.closest('.info-card');
+  const cta = document.querySelector('#screen-score .cta-button');
+  // "Viewing other" banner (created lazily)
+  let viewBanner = document.getElementById('viewing-other-banner');
+  if (!viewBanner) {
+    viewBanner = document.createElement('div');
+    viewBanner.id = 'viewing-other-banner';
+    viewBanner.className = 'viewing-other-banner';
+    const idCard = document.querySelector('#screen-score .identity-card');
+    if (idCard && idCard.parentNode) idCard.parentNode.insertBefore(viewBanner, idCard.nextSibling);
+  }
+  if (isSelf) {
+    if (climbCard) climbCard.style.display = '';
+    if (cta) cta.style.display = '';
+    viewBanner.style.display = 'none';
+  } else {
+    if (climbCard) climbCard.style.display = 'none';
+    if (cta) cta.style.display = 'none';
+    viewBanner.style.display = 'flex';
+    viewBanner.innerHTML = '<span class="vob-icon">👁️</span><span>' + t('viewing_other_note').replace('{name}', '<strong>' + esc(host.name || '') + '</strong>') + '</span>';
+  }
+
+  document.getElementById('score-name').textContent = host.name || '—';
+  document.getElementById('score-mobile').textContent = maskMobile(host.mobile);
+
+  // Cohort chip — how many hosts share this user's # of tasks done (replaces individual rank)
+  const myTs = computeTaskStatus(host);
+  const sameCohortCount = LEADERBOARD_DATA.filter(h => computeTaskStatus(h).unlocked === myTs.unlocked).length;
+  const allThreeCount = LEADERBOARD_DATA.filter(h => computeTaskStatus(h).unlocked === 3).length;
+  const cohortChip = document.getElementById('cohort-chip');
+  if (cohortChip) {
+    let cohortBody;
+    if (myTs.unlocked === 3) {
+      cohortBody = `<div><strong>${sameCohortCount}</strong> users have achieved MAX (all 3 tasks)</div>
+                    <div class="cohort-chip-sub">You're in the top tier 👑</div>`;
+    } else {
+      const taskWord = myTs.unlocked === 1 ? 'task' : 'tasks';
+      cohortBody = `<div><strong>${sameCohortCount}</strong> users have done ${myTs.unlocked} ${taskWord}, like you</div>
+                    <div class="cohort-chip-sub">${allThreeCount} users have unlocked MAX 1.5×</div>`;
+    }
+    cohortChip.innerHTML = `<div class="cohort-chip-emoji">👥</div><div class="cohort-chip-body">${cohortBody}</div>`;
+  }
+  // redeem-rate card removed — rate now shown inside climb-tips comparison block
+
+  // Tier badge in identity sub-line
+  document.getElementById('score-tier-badge').innerHTML = tierChip(host, 'large');
+
+  // Tier card — reframed (May 2026): focused on Make-100-Games → 1.0× rate unlock
+  // No more Rookie/Aspiring/Pro labels; the only milestone that matters is 100 games.
+  const tierBody = document.getElementById('tier-progress-body');
+  const tsTier = computeTaskStatus(host);
+  const baseTarget = TASK_THRESHOLDS.base_games;
+  const tierPct = Math.min(100, Math.round((tsTier.games / baseTarget) * 100));
+  if (tsTier.baseMet) {
+    tierBody.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0;">
+        <div class="tier-ladder-step pro">⭐</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:white;">Base unlocked! 🎉</div>
+          <div style="font-size:12px;color:var(--text-secondary);">Pro Player rate active · 1.0×–1.5× (tasks pe depend)</div>
+        </div>
+      </div>`;
+  } else {
+    tierBody.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;padding:6px 0 12px;">
+        <div class="tier-ladder-step">🎯</div>
+        <div style="flex:1;">
+          <div style="font-size:15px;font-weight:800;color:white;">Make 100 Games</div>
+          <div style="font-size:12px;color:var(--text-secondary);"><strong style="color:var(--gold);">1.0×</strong> conversion rate unlock</div>
+        </div>
+        <div style="font-size:15px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;">${tsTier.games}/${baseTarget}</div>
+      </div>
+      <div class="tier-progress"><div class="tier-progress-fill" style="width:${tierPct}%;"></div></div>
+      <div class="tier-progress-label">
+        <span><strong>${baseTarget - tsTier.games}</strong> more games</span>
+        <span>Goal: <strong style="color:var(--gold);">1.0× rate</strong></span>
+      </div>`;
+  }
+
+  // Avatar
+  const initial = initialOf(host.name);
+  const bg = avatarBg(host.rank - 1);
+  const idAvatar = document.getElementById('score-id-avatar');
+  idAvatar.style.background = bg;
+  idAvatar.textContent = initial;
+  const heroAvatar = document.getElementById('score-avatar');
+  heroAvatar.style.background = bg;
+  document.getElementById('score-avatar-emoji').textContent = initial;
+
+  // Task progress — CIRCULAR (May 2026 redesign)
+  const tips = document.getElementById('climb-tips');
+  const ts = computeTaskStatus(host);
+  const basePct = Math.min(100, Math.round((ts.games / TASK_THRESHOLDS.base_games) * 100));
+
+  // Small-circle helper (76px) — emoji + percent inside the ring. Tappable → opens popup.
+  // SVG circle r=32 → circumference ≈ 201.06
+  const smallC = 201.06;
+  const smallCirc = (done, pct, emoji, name, valHtml, taskKey) => {
+    const dash = (pct / 100) * smallC;
+    return `
+      <div class="circ-task ${done ? 'done' : ''}" data-task-key="${taskKey}" role="button" tabindex="0">
+        <div class="circ-progress">
+          <svg viewBox="0 0 76 76">
+            <circle class="circ-progress-bg" cx="38" cy="38" r="32"></circle>
+            <circle class="circ-progress-fill" cx="38" cy="38" r="32"
+                    stroke-dasharray="${dash} ${smallC}"></circle>
+          </svg>
+          <div class="circ-progress-inner">
+            <div class="circ-progress-emoji ${done ? 'done-glow' : ''}">${emoji}</div>
+            <div class="circ-progress-pct">${pct}%</div>
+          </div>
+        </div>
+        <div class="circ-task-name">${name}</div>
+        <div class="circ-task-val">${valHtml}</div>
+      </div>`;
+  };
+
+  // Base big-circle (96px) — r=42, circumference ≈ 263.89
+  const bigC = 263.89;
+  const baseDash = (basePct / 100) * bigC;
+
+  // Encouragement copy (motivation to do more)
+  const remaining = 3 - ts.unlocked;
+  let encouragement;
+  if (ts.unlocked === 0)      encouragement = `<strong>Start karo!</strong><br>3 tasks = 1.5× MAX`;
+  else if (ts.unlocked === 1) encouragement = `<strong>Great!</strong><br>2 aur task = 1.5× MAX`;
+  else if (ts.unlocked === 2) encouragement = `<strong>Bas 1 aur!</strong><br>Aakhri task = 1.5× MAX 🎯`;
+  else                        encouragement = `<strong>MAX achieved! 🎉</strong><br>1.5× rate unlocked`;
+
+  // Rate display — Pro Player rate is what WE compute. Badge Upgrade rate is the user's
+  // existing tier rate (we don't have its value in this prototype). So we show our rate
+  // honestly, and explain the rule: final = MAX(Pro Player, your Badge Upgrade rate).
+  const proRateRaw = ts.projectedRate;
+  const proEligible = ts.baseMet;
+  const proRateStr = proEligible ? proRateRaw.toFixed(1) + '×' : '🔒';
+
+  tips.innerHTML = `
+    <div class="base-big-card ${ts.baseMet ? 'done' : ''}">
+      <div class="base-big-circ">
+        <svg viewBox="0 0 96 96">
+          <circle class="circ-progress-bg" cx="48" cy="48" r="42"></circle>
+          <circle class="circ-progress-fill" cx="48" cy="48" r="42"
+                  stroke-dasharray="${baseDash} ${bigC}"></circle>
+        </svg>
+        <div class="base-big-inner">
+          <div class="base-big-num">${ts.games}</div>
+          <div class="base-big-of">/ ${TASK_THRESHOLDS.base_games}</div>
+        </div>
+      </div>
+      <div class="base-big-body">
+        <div class="base-big-title">🎯 ${ts.baseMet ? 'Base unlocked!' : '100 Games · Base'}</div>
+        <div class="base-big-sub">${ts.baseMet
+          ? `<strong>Pro Player rate</strong> active`
+          : `<strong>${TASK_THRESHOLDS.base_games - ts.games}</strong> aur games = Pro Player unlock`}</div>
+      </div>
+    </div>
+
+    <div class="tasks-overview">
+      <div class="tasks-overview-left">
+        <div class="tasks-overview-count">${ts.unlocked}<span style="font-size:14px;color:var(--text-secondary);">/3</span></div>
+        <div class="tasks-overview-label">Bonus tasks done</div>
+      </div>
+      <div class="tasks-overview-cta">${encouragement}</div>
+    </div>
+
+    <div class="circ-row">
+      ${smallCirc(ts.tFans,  Math.min(100, Math.round((ts.fans  / TASK_THRESHOLDS.fans)       * 100)), '🔁', 'Fans',  `<strong>${ts.fans}</strong>/${TASK_THRESHOLDS.fans}`,    'fans')}
+      ${smallCirc(ts.tReach, Math.min(100, Math.round((ts.reach / TASK_THRESHOLDS.reach)      * 100)), '👥', 'Reach', `<strong>${ts.reach}</strong>/${TASK_THRESHOLDS.reach}`,  'reach')}
+      ${smallCirc(ts.tComp,  Math.min(100, Math.round((ts.comp  / TASK_THRESHOLDS.completion) * 100)), '✅', 'Complete', `<strong>${ts.comp.toFixed(0)}%</strong>/${TASK_THRESHOLDS.completion}%`, 'complete')}
+    </div>
+    <div class="circ-row-hint">👆 Tap kisi bhi task pe — explain hoga</div>
+
+    <div class="rate-compare-card">
+      <div class="rate-compare-title">💰 Aapka Pro Player conversion rate</div>
+      <div class="rate-headline ${proEligible ? '' : 'locked'}">
+        <div class="rate-headline-val">${proRateStr}</div>
+        <div class="rate-headline-sub">${proEligible
+          ? (ts.unlocked === 3 ? 'MAX achieved! 🎉' : ts.unlocked + '/3 tasks done')
+          : '<strong style="color:#fbbf24;">' + (TASK_THRESHOLDS.base_games - ts.games) + ' aur games</strong> → unlock'}</div>
+      </div>
+      <div class="rate-rule-explainer">
+        <div class="rate-rule-emoji">⚖️</div>
+        <div class="rate-rule-text">
+          <strong>Final rate = jo bhi zyada</strong><br>
+          Pro Player rate <span style="color:var(--gold);">OR</span> Aapka Badge Upgrade rate.<br>
+          <span style="color:var(--text-tertiary);font-size:11px;">Aapko hamesha better wala milega — automatic.</span>
+        </div>
+      </div>
+    </div>
+  `;
+  // NOTE: screen switch is the caller's responsibility — see row/podium/chip click handlers.
+}
+
+// ====================================================================
+// SEARCH
+// ====================================================================
+function applySearch(query) {
+  const q = String(query || '').toLowerCase().trim();
+  if (!q) {
+    renderList(LEADERBOARD_DATA);
+    return;
+  }
+  // Search across ALL 173 (not just top 10 visible)
+  const filtered = LEADERBOARD_DATA.filter(h =>
+    (h.name || '').toLowerCase().includes(q) ||
+    String(h.mobile || '').includes(q) ||
+    String(h.host_id || '').includes(q)
+  );
+  renderList(filtered, { isSearch: true });
+}
+
+// ====================================================================
+// TIMESTAMPS — last updated + next update (every 4 hours)
+// ====================================================================
+function formatTime12(d) {
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if (h === 0) h = 12;
+  return h + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
+}
+function formatDay(d) {
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = d.toDateString() === yesterday.toDateString();
+  if (isToday) return 'Aaj';
+  if (isYesterday) return 'Kal';
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return d.getDate() + ' ' + months[d.getMonth()];
+}
+function relativeIn(ms) {
+  const m = Math.round(ms / 60000);
+  if (m < 1) return 'abhi';
+  if (m < 60) return m + ' min mein';
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  if (rem === 0) return h + ' ghante mein';
+  return h + 'h ' + rem + 'm mein';
+}
+function renderTimestamps() {
+  const now = new Date();
+  // Snap "last updated" to the most recent 4-hour boundary (00, 04, 08, 12, 16, 20)
+  const lastUpdate = new Date(now);
+  const slotHour = Math.floor(now.getHours() / 4) * 4;
+  lastUpdate.setHours(slotHour, 0, 0, 0);
+  const nextUpdate = new Date(lastUpdate);
+  nextUpdate.setHours(nextUpdate.getHours() + 4);
+
+  const lastTxt = formatDay(lastUpdate) + ', ' + formatTime12(lastUpdate);
+  const nextTxt = formatDay(nextUpdate) + ' ' + formatTime12(nextUpdate);
+  const nextRel = relativeIn(nextUpdate - now);
+
+  const lastEl = document.getElementById('last-updated-text');
+  const nextEl = document.getElementById('next-update-text');
+  const chipEl = document.getElementById('next-update-chip');
+  if (lastEl) lastEl.textContent = lastTxt;
+  if (nextEl) nextEl.textContent = nextRel;
+  if (chipEl) chipEl.textContent = 'Next update: ' + nextRel;
+}
+
+// ====================================================================
+// SCREEN SWITCH (both top tabs + bottom nav)
+// ====================================================================
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+
+  document.querySelectorAll('.demo-controls button').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === name);
+  });
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.nav === name);
+  });
+  // Reset scroll
+  document.querySelectorAll('.screen-content').forEach(c => c.scrollTop = 0);
+}
+
+// ====================================================================
+// INIT
+// ====================================================================
+// ====================================================================
+// TIER LADDER PROGRESS (Kaise Jeeto screen)
+// Maps games_done to a 0–100% position on the horizontal track.
+// Aspiring milestone sits at 25% (= 25 games), Pro at 100% (= 100 games).
+// ====================================================================
+function renderTierProgress(host) {
+  const games = host.games_done || 0;
+  const aspT = 25;     // milestone target for production threshold
+  const proT = 100;
+  let pct;
+  if (games <= 0) pct = 0;
+  else if (games >= proT) pct = 100;
+  else if (games >= aspT) {
+    // Linear from aspiring (25%) to pro (100%)
+    pct = 25 + ((games - aspT) / (proT - aspT)) * 75;
+  } else {
+    // Linear from start (0%) to aspiring (25%)
+    pct = (games / aspT) * 25;
+  }
+  const fill = document.getElementById('tier-fill-bar');
+  const marker = document.getElementById('you-marker');
+  const markerText = document.getElementById('you-marker-text');
+  if (fill) fill.style.width = pct + '%';
+  if (marker) marker.style.left = pct + '%';
+  if (markerText) markerText.textContent = 'YOU · ' + games;
+  // Highlight achieved milestones
+  document.querySelectorAll('.tier-milestone').forEach(m => m.classList.remove('achieved'));
+  if (games >= aspT) document.querySelector('.milestone-aspiring')?.classList.add('achieved');
+  if (games >= proT) document.querySelector('.milestone-pro')?.classList.add('achieved');
+}
+
+// ====================================================================
+// LANGUAGE GATE
+// ====================================================================
+function showLangGate() {
+  document.getElementById('lang-gate').style.display = 'flex';
+}
+function hideLangGate() {
+  document.getElementById('lang-gate').style.display = 'none';
+}
+function wireLangGate() {
+  // Always wired — independent of whether the gate is initially shown or skipped.
+  // Chips (direct language pick)
+  document.querySelectorAll('.lang-chip').forEach(chip => {
+    if (chip.__wired) return;
+    chip.__wired = true;
+    chip.addEventListener('click', () => {
+      applyLanguage(chip.dataset.lang);
+      hideLangGate();
+    });
+  });
+
+  // Mobile submission
+  const submitBtn = document.getElementById('lang-gate-submit');
+  const input = document.getElementById('lang-gate-input');
+  const errorEl = document.getElementById('lang-gate-error');
+  if (submitBtn && !submitBtn.__wired) {
+    submitBtn.__wired = true;
+    const handleSubmit = async () => {
+      const v = String(input.value || '').replace(/\D/g, '');
+      if (v.length !== 10) {
+        errorEl.textContent = t('gate_err_invalid');
+        return;
+      }
+      errorEl.textContent = '';
+      const lang = detectLanguageFromMobile(v) || 'en';
+      applyLanguage(lang);
+      submitBtn.disabled = true;
+      try {
+        if (LEADERBOARD_DATA.length === 0) await loadLeaderboard();
+        const me = await lookupSelfByMobile(v);
+        if (!me) {
+          errorEl.textContent = 'Mobile number sheet mein nahi mila';
+          submitBtn.disabled = false;
+          return;
+        }
+        rerenderAll();
+        hideLangGate();
+      } catch (e) {
+        errorEl.textContent = 'Network error — try again';
+      } finally {
+        submitBtn.disabled = false;
+      }
+    };
+    submitBtn.addEventListener('click', handleSubmit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
+    input.addEventListener('input', () => { input.value = input.value.replace(/\D/g, ''); });
+  }
+
+  // Top-bar 🌐 switcher — re-opens the gate any time
+  const switcher = document.getElementById('lang-switcher');
+  if (switcher && !switcher.__wired) {
+    switcher.__wired = true;
+    switcher.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showLangGate();
+    });
+  }
+}
+
+function initLangGate() {
+  wireLangGate();
+  // Decide whether to show or skip the modal on initial load
+  let saved = null;
+  try { saved = localStorage.getItem('ppb_lang'); } catch (e) {}
+  if (saved && SUPPORTED_LANGS.includes(saved)) {
+    applyLanguage(saved);
+    hideLangGate();
+  } else {
+    showLangGate();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Fetch leaderboard from Apps Script API before initial render.
+  // If the user already has a saved mobile (via localStorage on a prior visit),
+  // we could lookup self here too — but to keep it simple, that happens in the gate handler.
+  await loadLeaderboard();
+  const me = LEADERBOARD_DATA.find(h => h.rank === CURRENT_USER_RANK) || LEADERBOARD_DATA[0];
+  if (me) {
+    showMyScore(me);
+    renderTierProgress(me);
+  }
+  // Land on My Score (Leaderboard removed)
+  switchScreen('score');
+
+  // Timestamps still render the "last updated / next update" timestamps shown on My Score
+  if (typeof renderTimestamps === 'function') {
+    try { renderTimestamps(); } catch (e) {}
+    setInterval(() => { try { renderTimestamps(); } catch (e) {} }, 60 * 1000);
+  }
+
+  // Language gate (or auto-apply saved lang)
+  initLangGate();
+
+  // Top demo controls (excluding lang-switcher which has its own handler)
+  document.querySelectorAll('.demo-controls button[data-screen]').forEach(btn => {
+    btn.addEventListener('click', () => switchScreen(btn.dataset.screen));
+  });
+
+  // Bottom nav
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    item.addEventListener('click', () => switchScreen(item.dataset.nav));
+  });
+
+  // Task explainer modal — fans / reach / complete click → bottom-sheet popup
+  initTaskModal();
+});
+
+// ====================================================================
+// TASK EXPLAINER MODAL (May 2026)
+// Click any of the 3 small task circles → bottom-sheet with definition + tip.
+// ====================================================================
+const TASK_EXPLAINERS = {
+  fans: {
+    emoji: '🔁',
+    title: 'Fans Banao',
+    sections: [
+      { label: 'What is a fan?', text: 'A player who has played <strong>5+ games</strong> with you. They keep coming back.' },
+      { label: 'Target', html: '<span class="task-modal-target-pill">15 fans</span>' },
+      { label: 'Why it matters', text: 'Fans are repeat users. They make your income predictable + stable.' },
+      { label: 'Tip', text: 'Last 30 sec ka high pe khatam karo. "Kal phir game khelenge?" plant karo — woh wapas aayenge.' },
+    ],
+  },
+  reach: {
+    emoji: '👥',
+    title: 'Reach Badao',
+    sections: [
+      { label: 'What is reach?', text: 'The number of <strong>unique players</strong> you have played with.' },
+      { label: 'Target', html: '<span class="task-modal-target-pill">50 unique players</span>' },
+      { label: 'Why it matters', text: 'More players = bigger pool to convert into fans. Variety se aapki style improve hoti hai.' },
+      { label: 'Tip', text: 'Naye player mile to open mind se khelo. Pehle game accha ho to aap unke favourite ban sakte ho.' },
+    ],
+  },
+  complete: {
+    emoji: '✅',
+    title: 'Pura Khelo',
+    sections: [
+      { label: 'What it is', text: 'Percentage of games you <strong>complete</strong> out of total games you start.' },
+      { label: 'How calculated', text: 'Complete games ÷ Total games started × 100' },
+      { label: 'Target', html: '<span class="task-modal-target-pill">50%+ completion</span>' },
+      { label: 'Tip', text: 'Sirf un calls mein game start karo jab time hai pura khelne ka. Kam games — but pure khelo — tezi se rate badhayega.' },
+    ],
+  },
+};
+
+function initTaskModal() {
+  const modal = document.getElementById('task-modal');
+  if (!modal) return;
+  const emojiEl = document.getElementById('task-modal-emoji');
+  const titleEl = document.getElementById('task-modal-title');
+  const bodyEl  = document.getElementById('task-modal-body');
+
+  function openModal(key) {
+    const data = TASK_EXPLAINERS[key];
+    if (!data) return;
+    emojiEl.textContent = data.emoji;
+    titleEl.textContent = data.title;
+    bodyEl.innerHTML = data.sections.map(s => `
+      <div class="task-modal-section">
+        <div class="task-modal-section-label">${s.label}</div>
+        <div class="task-modal-section-text">${s.html || s.text}</div>
+      </div>`).join('');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+  function closeModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  modal.querySelectorAll('[data-task-modal-close]').forEach(el => {
+    el.addEventListener('click', closeModal);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  // Delegate clicks on the 3 task circles (rendered dynamically inside #climb-tips)
+  document.addEventListener('click', e => {
+    const card = e.target.closest('.circ-task');
+    if (!card) return;
+    const key = card.dataset.taskKey;
+    if (key) openModal(key);
+  });
+}
+</script>
+
+</body>
+</html>
