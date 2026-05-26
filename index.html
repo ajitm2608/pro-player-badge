@@ -448,21 +448,42 @@
     display: flex; align-items: center; gap: 4px;
   }
 
-  /* Hero headline — sits above the avatar in the My Score hero */
-  .hero-headline {
+  /* Hero trophy + headline — the centered Pro Player branding block */
+  .hero-trophy-wrap {
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 24px 36px;
+    min-height: 220px;
     text-align: center;
-    margin: 24px 20px 12px;
+  }
+  .hero-trophy {
+    font-size: 84px;
+    line-height: 1;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.25));
+    animation: trophy-float 3s ease-in-out infinite;
+  }
+  @keyframes trophy-float {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-6px) rotate(2deg); }
+  }
+  .hero-headline {
+    margin-top: 14px;
     font-size: 20px;
     font-weight: 800;
-    line-height: 1.25;
+    line-height: 1.3;
     color: #1a1a1a;
     text-shadow: 0 1px 2px rgba(255,255,255,0.3);
     letter-spacing: -0.01em;
+    max-width: 320px;
   }
   @media (max-width: 380px) {
-    .hero-headline { font-size: 18px; margin: 18px 16px 10px; }
+    .hero-trophy { font-size: 72px; }
+    .hero-headline { font-size: 18px; }
+    .hero-trophy-wrap { padding: 22px 20px 30px; min-height: 200px; }
   }
 
   /* Main Card */
@@ -2371,9 +2392,13 @@
             <span class="sparkle s2">⭐</span>
             <span class="sparkle s3">✨</span>
 
-            <div class="hero-headline" data-i18n="hero_headline">Get Pro Player Badge &amp; Unlock Exclusive Benefits</div>
+            <div class="hero-trophy-wrap">
+              <div class="hero-trophy">🏆</div>
+              <div class="hero-headline" data-i18n="hero_headline">Get Pro Player Badge &amp; Unlock Exclusive Benefits</div>
+            </div>
 
-            <div class="avatar-hero" id="score-avatar">
+            <!-- Legacy avatar-hero kept hidden — the trophy is the new hero visual. -->
+            <div class="avatar-hero" id="score-avatar" style="display:none;">
               <div class="ring"></div>
               <span id="score-avatar-emoji">👩</span>
               <div class="badge-corner" id="score-badge-corner" style="display:none;">⭐ PRO</div>
@@ -3402,13 +3427,30 @@ let COHORT_STATS = {};                // populated by fetchCohortStats(); cohort
 // So: no token in client code, no sheet credentials, no enumeration possible.
 const PPB_API_URL = 'https://script.google.com/macros/s/AKfycbyhi33mLpLGBvH20uyCVpVMFVuYd9w-i1pndz359Ak_pZUE9azWw2229TiUIwUe1g-0-g/exec';
 
+// Synthetic zero-stats host returned when a mobile isn't in the sheet.
+// Lets the user past the gate and see the "tier 0, 0 tasks done" state
+// instead of being blocked with an error.
+function zeroStatsHost() {
+  return {
+    name: 'Player',
+    host_id: '',
+    games_total: 0,
+    games_done: 0,
+    repeats: 0,
+    reach: 0,
+    completion_pct: 0,
+    is_unregistered: true, // flag so the UI can hint "data not yet available"
+  };
+}
+
 async function fetchHostFresh(mobile) {
   const url = PPB_API_URL + '?mobile=' + encodeURIComponent(mobile);
   const r = await fetch(url, { method: 'GET', credentials: 'omit' });
   if (!r.ok) throw new Error('API HTTP ' + r.status);
   const data = await r.json();
   if (!data.ok) throw new Error(data.error || 'API error');
-  if (!data.found) return null;
+  // Mobile not in sheet: don't block the user — return a zero-stats host.
+  if (!data.found) return zeroStatsHost();
 
   // Map the Apps Script response into the netlify host schema expected by the
   // existing render functions (showMyScore, renderTierProgress, computeTaskStatus).
@@ -4189,8 +4231,11 @@ function wireLangGate() {
       submitBtn.disabled = true;
       try {
         const me = await fetchHostByMobile(v);
+        // fetchHostFresh returns a zero-stats host when the mobile isn't in
+        // the sheet, so a null `me` here only means the network call failed
+        // with no cached fallback. Surface that as a network error.
         if (!me) {
-          errorEl.textContent = 'Mobile number sheet mein nahi mila';
+          errorEl.textContent = 'Network error — try again';
           submitBtn.disabled = false;
           return;
         }
@@ -4223,11 +4268,19 @@ function wireLangGate() {
 
 function initLangGate() {
   wireLangGate();
-  // Decide whether to show or skip the modal on initial load
-  let saved = null;
-  try { saved = localStorage.getItem('ppb_lang'); } catch (e) {}
-  if (saved && SUPPORTED_LANGS.includes(saved)) {
-    applyLanguage(saved);
+  // The gate hides ONLY when we have a saved 10-digit mobile from a successful
+  // prior submit. A saved language alone (from a chip click) is not enough —
+  // otherwise users who picked a chip without entering a mobile end up on an
+  // empty My Score screen with no way back to the gate.
+  let savedLang = null, savedMobile = null;
+  try {
+    savedLang = localStorage.getItem('ppb_lang');
+    savedMobile = localStorage.getItem('ppb_last_mobile');
+  } catch (e) {}
+  if (savedLang && SUPPORTED_LANGS.includes(savedLang)) {
+    applyLanguage(savedLang);
+  }
+  if (savedMobile && /^\d{10}$/.test(savedMobile)) {
     hideLangGate();
   } else {
     showLangGate();
