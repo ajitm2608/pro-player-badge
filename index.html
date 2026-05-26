@@ -3375,7 +3375,7 @@ let COHORT_STATS = {};                // populated by fetchCohortStats(); cohort
 //   - returns ONLY that host's badge data (no leaderboard, no other rows),
 //   - does NOT echo the raw mobile back in the response.
 // So: no token in client code, no sheet credentials, no enumeration possible.
-const PPB_API_URL = 'https://script.google.com/macros/s/AKfycbzB28TylIbZiGWGuJZpWfkKC263sfgn_Hj_KxyE3LqWQEeiTLnezSFHPSsfsSICiXFpdA/exec';
+const PPB_API_URL = 'https://script.google.com/macros/s/AKfycbyhi33mLpLGBvH20uyCVpVMFVuYd9w-i1pndz359Ak_pZUE9azWw2229TiUIwUe1g-0-g/exec';
 
 async function fetchHostFresh(mobile) {
   const url = PPB_API_URL + '?mobile=' + encodeURIComponent(mobile);
