@@ -1264,6 +1264,30 @@
     color: white; font-size: 11px; font-weight: 700;
     padding: 3px 8px; border-radius: 4px; z-index: 3;
   }
+  /* Coming-soon video placeholder (no playback yet) */
+  .video-card--soon { cursor: default; }
+  .video-soon-badge {
+    position: absolute; left: 50%; top: 58%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    background: rgba(0,0,0,0.55);
+    color: var(--gold, #f5b937);
+    font-size: 13px; font-weight: 800;
+    padding: 8px 16px; border-radius: 999px;
+    border: 1px solid rgba(245,185,55,0.4);
+    white-space: nowrap;
+  }
+  /* Not-real-money disclaimer */
+  .disclaimer-note {
+    margin: 12px 2px 4px;
+    font-size: 11.5px; line-height: 1.5;
+    color: var(--text-tertiary, #8a8a8a);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+  }
   .video-meta {
     padding: 16px 18px;
   }
@@ -2515,26 +2539,18 @@
 
           <div class="main-card">
 
-            <!-- VIDEO CARD -->
-            <a class="video-card" id="video-card-link" href="https://youtu.be/CzqHaCkipb4" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;">
+            <!-- VIDEO CARD — coming soon (video not live yet) -->
+            <div class="video-card video-card--soon">
               <div class="video-thumb">
                 <div class="pattern"></div>
-                <div class="video-yt-chip">▶ YOUTUBE</div>
                 <div class="video-overlay-title" data-i18n="video_overlay_title">Pro Player Badge<br>Full Guide</div>
-                <div class="video-play-btn">
-                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-                <div class="video-duration">2:14</div>
+                <div class="video-soon-badge" data-i18n="video_soon">🎬 Video will be live soon</div>
               </div>
               <div class="video-meta">
                 <div class="video-title" data-i18n="video_title">Pro Player Badge · Full Guide</div>
-                <div class="video-sub" data-i18n="video_sub">▶ 2 min · Step-by-step samjho</div>
+                <div class="video-sub" data-i18n="video_soon_sub">Coming soon</div>
               </div>
-            </a>
-
-            <p class="lang-line" data-i18n="video_lang_line">
-              Sab kuch · 2 min
-            </p>
+            </div>
 
             <!-- Tier Ladder (progress format) -->
             <div class="section-header">
@@ -2639,7 +2655,7 @@
             <!-- RATE LADDER: simplified — show only what you GET at each tier -->
             <div class="section-header">
               <div class="section-icon" style="background:linear-gradient(135deg,#34d399,#10b981);">💰</div>
-              <div class="section-title" data-i18n="ladder_rate_title">Your reward</div>
+              <div class="section-title" data-i18n="ladder_rate_title">Yellow Rose Multiplier</div>
             </div>
 
             <div class="rate-ladder">
@@ -2674,6 +2690,11 @@
               </div>
             </div>
 
+            <!-- Disclaimer: not real-money gaming -->
+            <div class="disclaimer-note" data-i18n="disclaimer">
+              ℹ️ This is not real-money gaming. You don't have to stake or pay anything to earn this multiplier.
+            </div>
+
             <!-- Reward Card -->
             <div class="reward-card">
               <div class="reward-shield">
@@ -2683,7 +2704,7 @@
               <ul class="reward-list">
                 <li><span class="check">✓</span> <span data-i18n="reward_item_1"><strong>Exclusive Pro Badge</strong></span></li>
                 <li><span class="check">✓</span> <span data-i18n="reward_item_2"><strong>New Game</strong> Exclusive Access</span></li>
-                <li><span class="check">✓</span> <span data-i18n="reward_item_3"><strong>1.0–1.5×</strong> conversion rate</span></li>
+                <li><span class="check">✓</span> <span data-i18n="reward_item_3"><strong>1.0–1.5×</strong> Yellow Rose Multiplier</span></li>
                 <li><span class="check">✓</span> <span data-i18n="reward_item_4">Naye players</span></li>
                 <li><span class="check">✓</span> <span data-i18n="reward_item_5">Fans ka network</span></li>
               </ul>
@@ -2776,6 +2797,9 @@ const I18N = {
     video_title: 'Pro Player Badge · Full Guide',
     video_sub: '▶ 2 min · Step-by-step explainer',
     video_lang_line: 'All in 2 min',
+    video_soon: '🎬 Video will be live soon',
+    video_soon_sub: 'Coming soon',
+    disclaimer: "ℹ️ This is not real-money gaming. You don't have to stake or pay anything to earn this multiplier.",
     ladder_title: 'Tier Ladder', ladder_sub: 'Where are you?',
     ladder_start: 'Start',
     ladder_aspiring_short: 'Aspiring<br>Pro Player', ladder_pro_short: 'Pro Player',
@@ -2793,7 +2817,7 @@ const I18N = {
     task2_target: '<strong>50</strong> players',
     task3_title: 'Pura Khelo',
     task3_target: '<strong>50%+</strong> complete',
-    ladder_rate_title: 'Your reward',
+    ladder_rate_title: 'Yellow Rose Multiplier',
     max_rule_title: 'Pro Player <strong>OR</strong> Badge Upgrade',
     max_rule_sub: 'Whichever rate is higher — that\'s what you get',
     rate_tier_base: 'Base only',
@@ -2836,7 +2860,7 @@ const I18N = {
     reward_title: 'What you unlock',
     reward_item_1: '<strong>Exclusive Pro Badge</strong>',
     reward_item_2: '<strong>New Game</strong> Exclusive Access',
-    reward_item_3: '<strong>1.0–1.5×</strong> conversion rate',
+    reward_item_3: '<strong>1.0–1.5×</strong> Yellow Rose Multiplier',
     reward_item_4: 'New players come to you',
     reward_item_5: 'Network of fans',
     tips_title: '💡 What top players do differently',
@@ -2898,7 +2922,7 @@ const I18N = {
     task2_target: '<strong>50</strong> players',
     task3_title: 'Pura Khelo',
     task3_target: '<strong>50%+</strong> complete',
-    ladder_rate_title: 'Aapka reward',
+    ladder_rate_title: 'Yellow Rose Multiplier',
     max_rule_title: 'Pro Player OR Badge Upgrade',
     max_rule_sub: 'Jo bhi rate zyada hoga, aapko wahi rate milega.',
     rate_tier_base: 'Base only',
@@ -2941,7 +2965,7 @@ const I18N = {
     reward_title: 'Aap kya unlock karoge',
     reward_item_1: 'Exclusive Pro Badge',
     reward_item_2: 'Naye Game ka Exclusive Access',
-    reward_item_3: '1.0–1.5× conversion rate',
+    reward_item_3: '<strong>1.0–1.5×</strong> Yellow Rose Multiplier',
     reward_item_4: 'Naye players aapke paas ayenge',
     reward_item_5: 'Fans ka network',
     tips_title: '💡 Top players kya alag karte hain',
@@ -3002,7 +3026,7 @@ const I18N = {
     task2_target: '<strong>50</strong> players',
     task3_title: 'Games పూర్తి చేయండి',
     task3_target: '<strong>50%+</strong> complete',
-    ladder_rate_title: 'మీ reward',
+    ladder_rate_title: 'Yellow Rose Multiplier',
     max_rule_title: 'Pro Player లేదా Badge Upgrade',
     max_rule_sub: 'ఏ rate ఎక్కువగా ఉంటే — అదే మీకు apply అవుతుంది',
     rate_tier_base: 'Base only',
@@ -3045,7 +3069,7 @@ const I18N = {
     reward_title: 'మీకు ఏమి unlock అవుతుంది',
     reward_item_1: 'Exclusive Pro Badge',
     reward_item_2: 'కొత్త games కి Exclusive Access',
-    reward_item_3: '1.0–1.5× conversion rate',
+    reward_item_3: '<strong>1.0–1.5×</strong> Yellow Rose Multiplier',
     reward_item_4: 'కొత్త players మీ దగ్గరకు వస్తారు',
     reward_item_5: 'Fans network',
     tips_title: 'Top players ఏం differently చేస్తారు?',
@@ -3106,7 +3130,7 @@ const I18N = {
     task2_target: '<strong>50</strong> players',
     task3_title: 'Pura Khelo',
     task3_target: '<strong>50%+</strong> complete',
-    ladder_rate_title: 'உங்கள் Reward',
+    ladder_rate_title: 'Yellow Rose Multiplier',
     max_rule_title: 'Pro Player அல்லது Badge',
     max_rule_sub: 'அதிக Rate உங்களுக்கு கிடைக்கும்',
     rate_tier_base: 'Base only',
@@ -3149,7 +3173,7 @@ const I18N = {
     reward_title: 'Unlock ஆகும் நன்மைகள்',
     reward_item_1: 'Exclusive Pro Badge',
     reward_item_2: 'புதிய Games Access',
-    reward_item_3: '1.0–1.5× Rate',
+    reward_item_3: '<strong>1.0–1.5×</strong> Yellow Rose Multiplier',
     reward_item_4: 'புதிய Players வருவார்கள்',
     reward_item_5: 'Fans Network',
     tips_title: '💡 Top Players Tips',
@@ -3210,7 +3234,7 @@ const I18N = {
     task2_target: '<strong>50</strong> players',
     task3_title: 'Games full ആയി complete ചെയ്യൂ',
     task3_target: '<strong>50%+</strong> complete',
-    ladder_rate_title: 'നിങ്ങളുടെ reward',
+    ladder_rate_title: 'Yellow Rose Multiplier',
     max_rule_title: 'Pro Player OR Badge Upgrade',
     max_rule_sub: 'ഏത് rate ആണ് കൂടുതൽ  അതാണ് നിങ്ങൾക്ക് ലഭിക്കുക',
     rate_tier_base: 'Base only',
@@ -3253,7 +3277,7 @@ const I18N = {
     reward_title: 'unlock ചെയ്താൽ ലഭിക്കുന്നത്:',
     reward_item_1: 'Exclusive Pro Badge',
     reward_item_2: 'New Game Exclusive Access',
-    reward_item_3: '1.0–1.5× conversion rate',
+    reward_item_3: '<strong>1.0–1.5×</strong> Yellow Rose Multiplier',
     reward_item_4: 'പുതിയ players നിങ്ങളിലേക്ക് വരും',
     reward_item_5: 'സ്വന്തം fan network build ചെയ്യാം',
     tips_title: 'Top players ചെയ്യുന്ന smart കാര്യങ്ങൾ:',
@@ -3314,7 +3338,7 @@ const I18N = {
     task2_target: '<strong>50</strong> players',
     task3_title: 'Pura Khelo',
     task3_target: '<strong>50%+</strong> complete',
-    ladder_rate_title: 'ನಿಮ್ಮ ರಿವಾರ್ಡ್',
+    ladder_rate_title: 'Yellow Rose Multiplier',
     max_rule_title: 'ಪ್ರೊ ಪ್ಲೇಯರ್ ಅಥವಾ ಬ್ಯಾಡ್ಜ್ ಅಪ್‌ಗ್ರೇಡ್',
     max_rule_sub: 'ಯಾವ ರೇಟ್ ಹೆಚ್ಚಿಗೆ ಇರುತ್ತದೆಯೋ — ಅದೇ ನಿಮಗೆ ಸಿಗುತ್ತದೆ',
     rate_tier_base: 'Base only',
@@ -3357,7 +3381,7 @@ const I18N = {
     reward_title: 'ನೀವು ಅನ್‌ಲಾಕ್ ಮಾಡುವುದು',
     reward_item_1: 'Exclusive ಪ್ರೊ ಬ್ಯಾಡ್ಜ್',
     reward_item_2: 'ಹೊಸ ಗೇಮ್ exclusive access',
-    reward_item_3: '1.0–1.5× ಕನ್ವರ್ಷನ್ ರೇಟ್',
+    reward_item_3: '<strong>1.0–1.5×</strong> Yellow Rose Multiplier',
     reward_item_4: 'ಹೊಸ ಪ್ಲೇಯರ್‌ಗಳು ನಿಮ್ಮ ಬಳಿ ಬರುತ್ತಾರೆ',
     reward_item_5: 'ಫ್ಯಾನ್ಸ್ ನೆಟ್‌ವರ್ಕ್',
     tips_title: '💡 ಟಾಪ್ ಪ್ಲೇಯರ್‌ಗಳು ಬೇರೆಯಾಗಿ ಏನು ಮಾಡುತ್ತಾರೆ',
@@ -3386,17 +3410,6 @@ function t(key) {
   return (I18N[CURRENT_LANG] && I18N[CURRENT_LANG][key]) || I18N.en[key] || key;
 }
 
-// How-to-Win video per language. en + hi share the default; te/ta/ml/kn
-// each have a dedicated language version.
-const VIDEO_BY_LANG = {
-  en: 'https://youtu.be/CzqHaCkipb4',
-  hi: 'https://youtu.be/CzqHaCkipb4',
-  te: 'https://youtu.be/A1zzviKf8w8',
-  ta: 'https://youtu.be/y8o7rGtSe3Y',
-  ml: 'https://youtu.be/fcZZ5MyxhDU',
-  kn: 'https://youtu.be/NMzmTuOaei0',
-};
-
 function applyLanguage(lang) {
   if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
   CURRENT_LANG = lang;
@@ -3420,11 +3433,6 @@ function applyLanguage(lang) {
   document.querySelectorAll('.lang-chip').forEach(c => {
     c.classList.toggle('active', c.dataset.lang === lang);
   });
-  // Point the How-to-Win video at the language-specific version.
-  const videoLink = document.getElementById('video-card-link');
-  if (videoLink) {
-    videoLink.href = VIDEO_BY_LANG[lang] || VIDEO_BY_LANG.en;
-  }
   // Re-render dynamic elements that include language strings.
   // Source of truth is CURRENT_USER now (single-row fetch). Leaderboard refs kept for legacy code that may still exist.
   const me = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || null;
@@ -3906,7 +3914,7 @@ function showMyScore(host) {
         <div class="tier-ladder-step">🎯</div>
         <div style="flex:1;">
           <div style="font-size:15px;font-weight:800;color:white;">Complete 100 Games</div>
-          <div style="font-size:12px;color:var(--text-secondary);"><strong style="color:var(--gold);">1.0×</strong> conversion rate unlock</div>
+          <div style="font-size:12px;color:var(--text-secondary);"><strong style="color:var(--gold);">1.0×</strong> Yellow Rose Multiplier unlock</div>
         </div>
         <div style="font-size:15px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;">${tsTier.games}/${baseTarget}</div>
       </div>
@@ -4011,7 +4019,7 @@ function showMyScore(host) {
     <div class="circ-row-hint">👆 Tap kisi bhi task pe — explain hoga</div>
 
     <div class="rate-compare-card">
-      <div class="rate-compare-title">💰 Aapka Pro Player conversion rate</div>
+      <div class="rate-compare-title">💰 Aapka Pro Player Yellow Rose Multiplier</div>
       <div class="rate-headline ${proEligible ? '' : 'locked'}">
         <div class="rate-headline-val">${proRateStr}</div>
         <div class="rate-headline-sub">${proEligible
