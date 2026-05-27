@@ -2494,7 +2494,7 @@
           <div class="main-card">
 
             <!-- VIDEO CARD -->
-            <a class="video-card" href="https://youtu.be/CzqHaCkipb4" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;">
+            <a class="video-card" id="video-card-link" href="https://youtu.be/CzqHaCkipb4" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block;">
               <div class="video-thumb">
                 <div class="pattern"></div>
                 <div class="video-yt-chip">▶ YOUTUBE</div>
@@ -3274,6 +3274,17 @@ function t(key) {
   return (I18N[CURRENT_LANG] && I18N[CURRENT_LANG][key]) || I18N.en[key] || key;
 }
 
+// How-to-Win video per language. en + hi share the default; te/ta/ml/kn
+// each have a dedicated language version.
+const VIDEO_BY_LANG = {
+  en: 'https://youtu.be/CzqHaCkipb4',
+  hi: 'https://youtu.be/CzqHaCkipb4',
+  te: 'https://youtu.be/A1zzviKf8w8',
+  ta: 'https://youtu.be/y8o7rGtSe3Y',
+  ml: 'https://youtu.be/fcZZ5MyxhDU',
+  kn: 'https://youtu.be/NMzmTuOaei0',
+};
+
 function applyLanguage(lang) {
   if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
   CURRENT_LANG = lang;
@@ -3297,6 +3308,11 @@ function applyLanguage(lang) {
   document.querySelectorAll('.lang-chip').forEach(c => {
     c.classList.toggle('active', c.dataset.lang === lang);
   });
+  // Point the How-to-Win video at the language-specific version.
+  const videoLink = document.getElementById('video-card-link');
+  if (videoLink) {
+    videoLink.href = VIDEO_BY_LANG[lang] || VIDEO_BY_LANG.en;
+  }
   // Re-render dynamic elements that include language strings.
   // Source of truth is CURRENT_USER now (single-row fetch). Leaderboard refs kept for legacy code that may still exist.
   const me = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || null;
