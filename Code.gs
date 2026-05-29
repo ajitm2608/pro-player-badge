@@ -56,7 +56,16 @@ function doGet(e) {
     if (params.log) {
       const m = normalizeMobile_(params.mobile);
       const ev = String(params.log).trim().slice(0, 60);
-      if (m && ev) logEvent_(m, ev);
+      if (m && ev) {
+        logEvent_(m, ev, {
+          name:    params.name    || '',
+          host_id: params.host_id || '',
+          tier:    params.tier    || '',
+          games:   params.games   || '',
+          repeats: params.repeats || '',
+          reach:   params.reach   || '',
+        });
+      }
       return jsonResponse({ ok: true, logged: !!(m && ev) });
     }
 
@@ -305,12 +314,34 @@ function getCohortStats_() {
  *   col B: mobile_no (10 digits, normalized)
  *   col C: event     (e.g. 'login', 'interest_pro_player')
  *   col D: source    ('web' by default)
+ *   col E: name      (host name at the moment of the event)
+ *   col F: host_id
+ *   col G: tier      ('start' | 'aspiring' | 'pro')
+ *   col H: games_done
+ *   col I: repeats   (subscribers count)
+ *   col J: reach     (unique players)
+ *
+ * Cols E..J are populated when the client sends them (gate submit, auto-login,
+ * interest popup). For raw `?log=…&mobile=…` calls without extras, those
+ * cells stay blank — no error.
  */
-function logEvent_(mobile, event) {
+function logEvent_(mobile, event, extra) {
   try {
     const sheet = SpreadsheetApp.getActive().getSheetByName(CONFIG.LOG_SHEET_NAME);
-    if (!sheet) return; // tab doesn't exist yet — skip silently (won't error the lookup)
-    sheet.appendRow([new Date(), mobile, event, 'web']);
+    if (!sheet) return; // tab doesn't exist yet — skip silently
+    const x = extra || {};
+    sheet.appendRow([
+      new Date(),
+      mobile,
+      event,
+      'web',
+      x.name    || '',
+      x.host_id || '',
+      x.tier    || '',
+      x.games   || '',
+      x.repeats || '',
+      x.reach   || '',
+    ]);
   } catch (e) {
     // Never throw from logging.
   }

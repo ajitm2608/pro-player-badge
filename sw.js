@@ -15,7 +15,7 @@
 // Bump the version segment whenever you push a meaningful HTML change.
 // On activation, all old caches with a different version are deleted,
 // forcing a fresh fetch of the shell.
-const CACHE_VERSION = 'ppb-shell-v11';
+const CACHE_VERSION = 'ppb-shell-v12';
 
 // Resources prefetched at install time. Keep this small — anything else
 // gets cached lazily on first hit by the stale-while-revalidate handler.

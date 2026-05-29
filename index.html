@@ -4275,7 +4275,7 @@ function wireLangGate() {
         CURRENT_USER = me;
         rerenderSelf();
         try { localStorage.setItem('ppb_last_mobile', v); } catch (e) {}
-        logEvent('login', v);                 // record login in the event_log sheet
+        logSessionLoginOnce(v, me);            // record login (with host snapshot) in event_log
         hideLangGate();
         setTimeout(maybeShowInterestModal, 1500); // gentle delay so it doesn't feel jarring
       } catch (e) {
@@ -4342,6 +4342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showMyScore(me);
         renderTierProgress(me);
         if (!COHORT_STATS || Object.keys(COHORT_STATS).length === 0) fetchCohortStats();
+        logSessionLoginOnce(savedMobile, me);   // returning visitors get logged too (1 per session)
         setTimeout(maybeShowInterestModal, 2000); // returning visitors: still prompt once
       })
       .catch(e => { console.warn('[PPB] initial host fetch failed', e); fetchCohortStats(); });
@@ -4383,16 +4384,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ====================================================================
 // EVENT LOGGING — fire-and-forget GET to /exec?log=<event>&mobile=X
-// The backend appends to the event_log sheet tab. We never await this;
+// The backend appends a row to the event_log sheet tab. We never await this;
 // a failure (e.g. tab missing) must not block the user-facing flow.
+//
+// If an optional `host` object is passed, we attach the user's snapshot
+// (name, host_id, tier, games, repeats, reach) so the log is useful for
+// analytics — not just a raw "someone logged in" stream.
 // ====================================================================
-function logEvent(event, mobile) {
+function logEvent(event, mobile, host) {
   try {
     const m = String(mobile || '').replace(/\D/g, '');
     if (m.length !== 10 || !event) return;
-    const url = PPB_API_URL + '?log=' + encodeURIComponent(event) + '&mobile=' + encodeURIComponent(m);
+    const params = ['log=' + encodeURIComponent(event), 'mobile=' + encodeURIComponent(m)];
+    if (host && typeof host === 'object') {
+      if (host.name)    params.push('name='    + encodeURIComponent(String(host.name).slice(0, 80)));
+      if (host.host_id) params.push('host_id=' + encodeURIComponent(String(host.host_id)));
+      params.push('tier='    + encodeURIComponent(typeof getTier === 'function' ? getTier(host) : ''));
+      params.push('games='   + encodeURIComponent(host.games_done || 0));
+      params.push('repeats=' + encodeURIComponent(host.repeats    || 0));
+      params.push('reach='   + encodeURIComponent(host.reach      || 0));
+    }
+    const url = PPB_API_URL + '?' + params.join('&');
     fetch(url, { method: 'GET', credentials: 'omit', keepalive: true }).catch(function () { /* silent */ });
   } catch (e) { /* silent */ }
+}
+
+// Per-tab session dedupe so a page refresh doesn't spam the log.
+// First identification in a session (gate submit OR saved-mobile auto-login) → 1 row.
+function logSessionLoginOnce(mobile, host) {
+  try {
+    if (sessionStorage.getItem('ppb_session_logged')) return;
+    sessionStorage.setItem('ppb_session_logged', '1');
+  } catch (e) { /* sessionStorage unavailable — log anyway */ }
+  logEvent('login', mobile, host);
 }
 
 // ====================================================================
@@ -4421,7 +4445,7 @@ function initInterestModal() {
     yes.addEventListener('click', function () {
       let mobile = null;
       try { mobile = localStorage.getItem('ppb_last_mobile'); } catch (e) {}
-      logEvent('interest_pro_player', mobile);
+      logEvent('interest_pro_player', mobile, CURRENT_USER);
       try { localStorage.setItem('ppb_interest_recorded', '1'); } catch (e) {}
       close();
     });
