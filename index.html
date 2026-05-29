@@ -4409,13 +4409,21 @@ function logEvent(event, mobile, host) {
   } catch (e) { /* silent */ }
 }
 
-// Per-tab session dedupe so a page refresh doesn't spam the log.
-// First identification in a session (gate submit OR saved-mobile auto-login) → 1 row.
+// Two events, two semantics:
+//   • 'visit' — fires on EVERY page load (gate submit, auto-login, refresh, PWA resume).
+//     Use this for engagement / frequency analytics (how often someone opens the app).
+//   • 'login' — fires ONCE per browser tab session (dedupe via sessionStorage).
+//     Use this for unique-session analytics (distinct sessions per day).
+// Both rows include the host snapshot (name, host_id, tier, games, repeats, reach).
 function logSessionLoginOnce(mobile, host) {
+  // 'visit' first — no dedupe, runs on every call.
+  logEvent('visit', mobile, host);
+
+  // 'login' — once per session, then suppressed for the rest of the tab's life.
   try {
     if (sessionStorage.getItem('ppb_session_logged')) return;
     sessionStorage.setItem('ppb_session_logged', '1');
-  } catch (e) { /* sessionStorage unavailable — log anyway */ }
+  } catch (e) { /* sessionStorage unavailable — log 'login' anyway */ }
   logEvent('login', mobile, host);
 }
 
