@@ -2617,8 +2617,25 @@
 
           <div class="main-card">
 
-            <!-- VIDEO CARD — coming soon (video not live yet) -->
-            <div class="video-card video-card--soon">
+            <!-- VIDEO CARD — two siblings, applyLanguage() toggles which one is visible:
+                   • #video-card-link    → shown when VIDEO_BY_LANG[lang] has a URL (en, hi)
+                   • #video-card-soon    → shown when no URL is mapped for the current lang -->
+            <a class="video-card" id="video-card-link" href="#" target="_blank" rel="noopener" style="display:none;text-decoration:none;color:inherit;">
+              <div class="video-thumb">
+                <div class="pattern"></div>
+                <div class="video-yt-chip">▶ YOUTUBE</div>
+                <div class="video-overlay-title" data-i18n="video_overlay_title">Pro Player Badge<br>Full Guide</div>
+                <div class="video-play-btn">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>
+                </div>
+              </div>
+              <div class="video-meta">
+                <div class="video-title" data-i18n="video_title">Pro Player Badge · Full Guide</div>
+                <div class="video-sub" data-i18n="video_sub">▶ 2 min · Step-by-step explainer</div>
+              </div>
+            </a>
+
+            <div class="video-card video-card--soon" id="video-card-soon">
               <div class="video-thumb">
                 <div class="pattern"></div>
                 <div class="video-overlay-title" data-i18n="video_overlay_title">Pro Player Badge<br>Full Guide</div>
@@ -3492,6 +3509,15 @@ function t(key) {
   return (I18N[CURRENT_LANG] && I18N[CURRENT_LANG][key]) || I18N.en[key] || key;
 }
 
+// Per-language How-to-Win video URLs. Languages without an entry render the
+// "Video will be live soon" placeholder card instead. Add a URL here when a
+// language's video is ready — applyLanguage() picks it up on the next call.
+const VIDEO_BY_LANG = {
+  en: 'https://youtu.be/qN_x_GGA2zs',
+  hi: 'https://youtu.be/qN_x_GGA2zs',
+  // te / ta / ml / kn → coming soon (no entry → falls through to placeholder)
+};
+
 function applyLanguage(lang) {
   if (!SUPPORTED_LANGS.includes(lang)) lang = 'en';
   CURRENT_LANG = lang;
@@ -3515,6 +3541,20 @@ function applyLanguage(lang) {
   document.querySelectorAll('.lang-chip').forEach(c => {
     c.classList.toggle('active', c.dataset.lang === lang);
   });
+  // Video card: swap between live (with URL) and "coming soon" placeholder
+  const liveLink = document.getElementById('video-card-link');
+  const soonCard = document.getElementById('video-card-soon');
+  if (liveLink && soonCard) {
+    const videoUrl = VIDEO_BY_LANG[lang];
+    if (videoUrl) {
+      liveLink.href = videoUrl;
+      liveLink.style.display = 'block';
+      soonCard.style.display = 'none';
+    } else {
+      liveLink.style.display = 'none';
+      soonCard.style.display = '';
+    }
+  }
   // Re-render dynamic elements that include language strings.
   // Source of truth is CURRENT_USER now (single-row fetch). Leaderboard refs kept for legacy code that may still exist.
   const me = (typeof CURRENT_USER !== 'undefined' && CURRENT_USER) || null;
