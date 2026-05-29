@@ -16,7 +16,7 @@
  */
 
 const CONFIG = {
-  SHEET_NAME: 'Sheet1',              // EDIT to your data tab name (the tab at gid=870500265)
+  SHEET_NAME: 'data',              // EDIT to your data tab name (the tab at gid=870500265)
   COHORT_SHEET_NAME: 'cohort_stats', // key/value tab: col A = metric_key, col B = number
   LOG_SHEET_NAME: 'event_log',       // append-only log: col A = timestamp, B = mobile, C = event, D = source
 
