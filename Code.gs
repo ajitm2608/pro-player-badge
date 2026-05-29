@@ -18,6 +18,7 @@
 const CONFIG = {
   SHEET_NAME: 'Sheet1',              // EDIT to your data tab name (the tab at gid=870500265)
   COHORT_SHEET_NAME: 'cohort_stats', // key/value tab: col A = metric_key, col B = number
+  LOG_SHEET_NAME: 'event_log',       // append-only log: col A = timestamp, B = mobile, C = event, D = source
 
   COLUMNS: {
     name: 'name',
@@ -47,6 +48,16 @@ function doGet(e) {
 
     if (params.ping) {
       return jsonResponse(healthCheck_());
+    }
+
+    // Lightweight event log: ?log=<event>&mobile=10digits
+    // Side effect: appends a row to the event_log tab. Fire-and-forget from the
+    // client; we always return ok:true so the client doesn't retry.
+    if (params.log) {
+      const m = normalizeMobile_(params.mobile);
+      const ev = String(params.log).trim().slice(0, 60);
+      if (m && ev) logEvent_(m, ev);
+      return jsonResponse({ ok: true, logged: !!(m && ev) });
     }
 
     if (params.leaderboard) {
@@ -282,4 +293,25 @@ function getCohortStats_() {
     if (!isNaN(n)) stats[k] = n;
   }
   return { ok: true, stats: stats };
+}
+
+/**
+ * Append a row to the event_log sheet tab. Used by the ?log endpoint to
+ * capture user-level events (login, interest_pro_player, etc.) for the BI
+ * pipeline. Failures are swallowed — logging must never break the request.
+ *
+ * Sheet schema (tab name from CONFIG.LOG_SHEET_NAME):
+ *   col A: timestamp (Date — Sheets renders as ISO / locale string)
+ *   col B: mobile_no (10 digits, normalized)
+ *   col C: event     (e.g. 'login', 'interest_pro_player')
+ *   col D: source    ('web' by default)
+ */
+function logEvent_(mobile, event) {
+  try {
+    const sheet = SpreadsheetApp.getActive().getSheetByName(CONFIG.LOG_SHEET_NAME);
+    if (!sheet) return; // tab doesn't exist yet — skip silently (won't error the lookup)
+    sheet.appendRow([new Date(), mobile, event, 'web']);
+  } catch (e) {
+    // Never throw from logging.
+  }
 }
