@@ -56,7 +56,10 @@ function doGet(e) {
     if (params.log) {
       const m = normalizeMobile_(params.mobile);
       const ev = String(params.log).trim().slice(0, 60);
-      if (m && ev) {
+      // Safety net: events starting with 'test_' are silently dropped so curl-based
+      // smoke-tests from the maintainer don't pollute the production log.
+      const isTest = ev.indexOf('test_') === 0;
+      if (m && ev && !isTest) {
         logEvent_(m, ev, {
           name:    params.name    || '',
           host_id: params.host_id || '',
